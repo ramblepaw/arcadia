@@ -18,4 +18,8 @@ ENV DB_PATH=/data/games.db
 EXPOSE 8090
 VOLUME ["/data"]
 
+# Runs as your TrueNAS user (3000:3000) so files it writes to the mounted
+# /data volume stay manageable from Windows over SMB, matching your other apps.
+USER 3000:3000
+
 CMD ["node", "server/src/index.js"]

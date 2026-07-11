@@ -9,5 +9,6 @@ services:
       - '8090:8090'
     pull_policy: always
     restart: unless-stopped
+    user: '3000:3000'
     volumes:
       - /mnt/Main Store/Apps/Arcadia/data:/data
