@@ -1,6 +1,20 @@
 import { rankLabel, suitIcon, isWildCard } from "./deck.js";
 import { evaluateHand } from "./rules.js";
 
+// Categorical palette (dark-mode steps), validated against this app's dark
+// green modal surface (#0f4331) via the dataviz skill's validator - fixed
+// slot order is the CVD-safety mechanism, never reassigned by ranking.
+const CHART_COLORS = ["#3987e5", "#199e70", "#c98500", "#008300", "#9085e9", "#e66767"];
+const CHART_INK_MUTED = "#c9d2cc";
+const CHART_INK_SECONDARY = "#f2f2ee";
+const CHART_GRID = "rgba(255,255,255,0.14)";
+const CHART_SURFACE = "#0f4331";
+
+function playerColor(game, playerId) {
+  const idx = game.players.findIndex((p) => p.id === playerId);
+  return CHART_COLORS[idx % CHART_COLORS.length];
+}
+
 let selectedCardId = null;
 
 export function resetSelection() {
@@ -244,12 +258,32 @@ export function showRoundModal(game, onContinue) {
   body.innerHTML = "";
   const sorted = game.players.slice().sort((a, b) => a.roundScores[a.roundScores.length - 1] - b.roundScores[b.roundScores.length - 1]);
   sorted.forEach((p) => {
+    const wrap = document.createElement("div");
+    wrap.className = "round-summary-block";
+
     const row = document.createElement("div");
     row.className = "round-summary-row";
     if (p.wentOut) row.classList.add("winner");
     const roundScore = p.roundScores[p.roundScores.length - 1];
     row.innerHTML = `<span>${p.name}${p.wentOut ? " (went out)" : ""}</span><span>+${roundScore} → ${p.totalScore}</span>`;
-    body.appendChild(row);
+    wrap.appendChild(row);
+
+    const handRow = document.createElement("div");
+    handRow.className = "round-summary-hand";
+    const evalResult = evaluateHand(p.hand, game.wildRank);
+    const matchedIds = new Set();
+    evalResult.groups.forEach((g) => g.cardIds.forEach((id) => matchedIds.add(id)));
+    p.hand.forEach((card) => {
+      const el = buildCardEl(card, {
+        small: true,
+        wildRank: game.wildRank,
+        matched: matchedIds.has(card.id),
+      });
+      handRow.appendChild(el);
+    });
+    wrap.appendChild(handRow);
+
+    body.appendChild(wrap);
   });
 
   btn.textContent = game.gameOver ? "See Final Standings" : "Continue";
@@ -266,19 +300,22 @@ export function showScoresModal(game) {
   const table = document.createElement("table");
   table.className = "score-table";
 
+  // Always ordered by current placement (lowest total first), not join order.
+  const ranked = game.players.slice().sort((a, b) => a.totalScore - b.totalScore);
+
   const thead = document.createElement("tr");
-  thead.innerHTML = "<th>Round</th>" + game.players.map((p) => `<th>${p.name}</th>`).join("");
+  thead.innerHTML = "<th>Round</th>" + ranked.map((p) => `<th>${p.name}</th>`).join("");
   table.appendChild(thead);
 
   const roundsPlayed = game.players[0].roundScores.length;
   for (let r = 0; r < roundsPlayed; r++) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${r + 1}</td>` + game.players.map((p) => `<td>${p.roundScores[r] ?? "-"}</td>`).join("");
+    tr.innerHTML = `<td>${r + 1}</td>` + ranked.map((p) => `<td>${p.roundScores[r] ?? "-"}</td>`).join("");
     table.appendChild(tr);
   }
 
   const totalTr = document.createElement("tr");
-  totalTr.innerHTML = `<td class="total-row">Total</td>` + game.players.map((p) => `<td class="total-row">${p.totalScore}</td>`).join("");
+  totalTr.innerHTML = `<td class="total-row">Total</td>` + ranked.map((p) => `<td class="total-row">${p.totalScore}</td>`).join("");
   table.appendChild(totalTr);
 
   wrap.innerHTML = "";
@@ -290,14 +327,106 @@ export function hideScoresModal() {
   document.getElementById("scores-modal").classList.add("hidden");
 }
 
+function niceTicks(maxValue, targetCount = 5) {
+  if (maxValue <= 0) return [0, 10, 20, 30, 40];
+  const rawStep = maxValue / targetCount;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const residual = rawStep / magnitude;
+  let step;
+  if (residual > 5) step = 10 * magnitude;
+  else if (residual > 2) step = 5 * magnitude;
+  else if (residual > 1) step = 2 * magnitude;
+  else step = magnitude;
+  const ticks = [];
+  for (let t = 0; t <= maxValue + step; t += step) ticks.push(Math.round(t));
+  return ticks;
+}
+
+function buildScoreLineChartSVG(game) {
+  const roundsPlayed = game.players[0].roundScores.length;
+  if (roundsPlayed === 0) return "";
+
+  const series = game.players.map((p) => {
+    let running = 0;
+    const cum = p.roundScores.map((s) => (running += s));
+    return { id: p.id, name: p.name, color: playerColor(game, p.id), cum };
+  });
+
+  const maxScore = Math.max(1, ...series.map((s) => s.cum[s.cum.length - 1]));
+  const ticks = niceTicks(maxScore);
+  const maxTick = ticks[ticks.length - 1];
+
+  const width = 600;
+  const height = 300;
+  const marginLeft = 40;
+  const marginRight = 96;
+  const marginTop = 16;
+  const marginBottom = 28;
+  const plotW = width - marginLeft - marginRight;
+  const plotH = height - marginTop - marginBottom;
+
+  const xScale = (round) =>
+    marginLeft + (roundsPlayed === 1 ? 0 : ((round - 1) / (roundsPlayed - 1)) * plotW);
+  const yScale = (value) => marginTop + plotH - (value / maxTick) * plotH;
+
+  let svg = "";
+
+  // Gridlines + y-axis labels (hairline, recessive; ticks carry values not directly labeled).
+  ticks.forEach((t) => {
+    const y = yScale(t);
+    svg += `<line x1="${marginLeft}" y1="${y}" x2="${marginLeft + plotW}" y2="${y}" stroke="${CHART_GRID}" stroke-width="1"/>`;
+    svg += `<text x="${marginLeft - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="${CHART_INK_MUTED}">${t}</text>`;
+  });
+
+  // X-axis round labels.
+  for (let r = 1; r <= roundsPlayed; r++) {
+    if (roundsPlayed > 11 && r % 2 === 0) continue; // shouldn't happen (11 rounds max) but guards crowding
+    svg += `<text x="${xScale(r)}" y="${height - 6}" text-anchor="middle" font-size="10" fill="${CHART_INK_MUTED}">${r}</text>`;
+  }
+
+  // One polyline + end-dot per player, in fixed color-slot order (identity, not rank).
+  const labelTargets = [];
+  series.forEach((s) => {
+    const points = s.cum.map((v, i) => `${xScale(i + 1)},${yScale(v)}`).join(" ");
+    svg += `<polyline points="${points}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    const endX = xScale(roundsPlayed);
+    const endY = yScale(s.cum[s.cum.length - 1]);
+    svg += `<circle cx="${endX}" cy="${endY}" r="4" fill="${s.color}" stroke="${CHART_SURFACE}" stroke-width="2"/>`;
+    labelTargets.push({ name: s.name, color: s.color, endX, endY, y: endY });
+  });
+
+  // Declutter end-labels: enforce a minimum vertical gap, cascading downward.
+  labelTargets.sort((a, b) => a.y - b.y);
+  const MIN_GAP = 15;
+  for (let i = 1; i < labelTargets.length; i++) {
+    if (labelTargets[i].y - labelTargets[i - 1].y < MIN_GAP) {
+      labelTargets[i].y = labelTargets[i - 1].y + MIN_GAP;
+    }
+  }
+  labelTargets.forEach((t) => {
+    const labelX = marginLeft + plotW + 10;
+    if (Math.abs(t.y - t.endY) > 3) {
+      svg += `<line x1="${t.endX}" y1="${t.endY}" x2="${labelX - 6}" y2="${t.y}" stroke="${t.color}" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>`;
+    }
+    svg += `<circle cx="${labelX}" cy="${t.y}" r="4" fill="${t.color}"/>`;
+    svg += `<text x="${labelX + 8}" y="${t.y + 4}" font-size="12" fill="${CHART_INK_SECONDARY}">${t.name}</text>`;
+  });
+
+  return `<svg viewBox="0 0 ${width} ${height}" class="score-chart" role="img" aria-label="Cumulative score by round for each player">${svg}</svg>`;
+}
+
 export function showGameOverModal(game) {
+  const chartWrap = document.getElementById("score-chart-wrap");
+  chartWrap.innerHTML = `<div class="chart-caption">Cumulative score by round &middot; lower is better</div>${buildScoreLineChartSVG(game)}`;
+
   const wrap = document.getElementById("final-standings");
   wrap.innerHTML = "";
   const standings = game.standings();
   standings.forEach((s, i) => {
     const row = document.createElement("div");
     row.className = "standing-row" + (i === 0 ? " rank-1" : "");
-    row.innerHTML = `<span>${i + 1}. ${s.name}${s.isHuman ? " (You)" : ""}</span><span>${s.totalScore}</span>`;
+    const dot = `<span class="legend-dot" style="background:${playerColor(game, s.id)}"></span>`;
+    row.innerHTML = `<span>${dot}${i + 1}. ${s.name}${s.isHuman ? " (You)" : ""}</span><span>${s.totalScore}</span>`;
     wrap.appendChild(row);
   });
   document.getElementById("game-over-modal").classList.remove("hidden");

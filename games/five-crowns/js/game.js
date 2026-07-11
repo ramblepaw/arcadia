@@ -4,13 +4,30 @@ import { evaluateHand } from "./rules.js";
 const TOTAL_ROUNDS = 11;
 const FIRST_HAND_SIZE = 3;
 
+const BOT_NAMES = [
+  "Ada", "Beau", "Casey", "Dana", "Ezra", "Finch", "Gwen", "Huxley",
+  "Ivy", "Jules", "Kira", "Lennon", "Marlowe", "Nico", "Orin", "Piper",
+  "Quinn", "Reyna", "Sable", "Tobin",
+];
+
+function pickBotNames(count) {
+  const pool = [...BOT_NAMES];
+  const picked = [];
+  for (let i = 0; i < count && pool.length > 0; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    picked.push(pool.splice(idx, 1)[0]);
+  }
+  return picked;
+}
+
 export class Game {
   constructor(numBots) {
     this.numPlayers = numBots + 1;
     this.players = [];
     this.players.push({ id: 0, name: "You", isHuman: true, hand: [], totalScore: 0, roundScores: [] });
+    const botNames = pickBotNames(numBots);
     for (let i = 1; i <= numBots; i++) {
-      this.players.push({ id: i, name: `Bot ${i}`, isHuman: false, hand: [], totalScore: 0, roundScores: [] });
+      this.players.push({ id: i, name: botNames[i - 1], isHuman: false, hand: [], totalScore: 0, roundScores: [] });
     }
     this.round = 1;
     this.listeners = [];

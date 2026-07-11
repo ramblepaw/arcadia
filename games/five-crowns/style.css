@@ -397,13 +397,23 @@ table.score-table th, table.score-table td {
 table.score-table th { background: rgba(255,255,255,0.08); }
 table.score-table td.total-row { font-weight: 700; color: var(--gold); }
 
+.round-summary-block {
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
 .round-summary-row {
   display: flex;
   justify-content: space-between;
-  padding: 6px 4px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 0 0 6px;
 }
 .round-summary-row.winner { color: var(--gold); font-weight: 700; }
+
+.round-summary-hand {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
 
 #final-standings .standing-row {
   display: flex;
@@ -413,6 +423,40 @@ table.score-table td.total-row { font-weight: 700; color: var(--gold); }
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 #final-standings .standing-row.rank-1 { color: var(--gold); font-weight: 700; font-size: 1.2em; }
+
+.legend-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.chart-caption {
+  font-size: 0.82em;
+  color: var(--text-dim);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.score-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.game-over-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.game-over-actions button.secondary {
+  background: var(--panel-light);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.2);
+}
 
 @media (max-width: 480px) {
   :root { --card-w: 54px; --card-h: 78px; }

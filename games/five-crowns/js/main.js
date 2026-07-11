@@ -155,6 +155,12 @@ document.getElementById("scores-btn").addEventListener("click", () => {
 
 document.getElementById("close-scores-btn").addEventListener("click", () => {
   ui.hideScoresModal();
+  if (game && game.gameOver) ui.showGameOverModal(game);
+});
+
+document.getElementById("view-score-table-btn").addEventListener("click", () => {
+  document.getElementById("game-over-modal").classList.add("hidden");
+  ui.showScoresModal(game);
 });
 
 document.getElementById("play-again-btn").addEventListener("click", () => {
