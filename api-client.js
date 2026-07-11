@@ -56,6 +56,13 @@ export function logout() {
   return request("/api/auth/logout", { method: "POST" });
 }
 
+export function changePassword({ currentPassword, newPassword }) {
+  return request("/api/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+}
+
 export function recordPlay({ gameSlug, score, result, details }) {
   return request("/api/plays", {
     method: "POST",

@@ -29,6 +29,11 @@ export function destroySession(token) {
   db.prepare("DELETE FROM sessions WHERE id = ?").run(token);
 }
 
+/** Signs out every other session for a user (e.g. after a password change) while keeping the current one active. */
+export function destroyOtherSessions(userId, keepToken) {
+  db.prepare("DELETE FROM sessions WHERE user_id = ? AND id != ?").run(userId, keepToken);
+}
+
 export function getSessionTokenFromReq(req) {
   return (req.cookies && req.cookies[SESSION_COOKIE]) || null;
 }

@@ -1,4 +1,4 @@
-import { getMe, getMyStats, getLeaderboard } from "./api-client.js";
+import { getMe, getMyStats, getLeaderboard, changePassword } from "./api-client.js";
 import { GAMES } from "./games.js";
 
 function gameTitle(slug) {
@@ -72,6 +72,31 @@ async function init() {
   const plays = await getMyStats({ limit: 50 });
   renderStatsTable(plays);
   await renderLeaderboards();
+
+  document.getElementById("change-password-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const messageEl = document.getElementById("change-password-message");
+    messageEl.textContent = "";
+    messageEl.className = "form-message";
+
+    const submitBtn = form.querySelector("button[type=submit]");
+    submitBtn.disabled = true;
+    try {
+      await changePassword({
+        currentPassword: form.currentPassword.value,
+        newPassword: form.newPassword.value,
+      });
+      messageEl.textContent = "Password changed. Other signed-in devices have been logged out.";
+      messageEl.classList.add("success");
+      form.reset();
+    } catch (err) {
+      messageEl.textContent = err.message;
+      messageEl.classList.add("error");
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
 }
 
 init();

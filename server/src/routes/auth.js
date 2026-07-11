@@ -5,11 +5,13 @@ import { validateUsername, validatePassword, validateEmail } from "../lib/valida
 import {
   createSession,
   destroySession,
+  destroyOtherSessions,
   setSessionCookie,
   clearSessionCookie,
   getSessionTokenFromReq,
 } from "../lib/sessions.js";
 import { authRateLimit } from "../middleware/rateLimit.js";
+import { requireAuth } from "../middleware/requireAuth.js";
 
 export const authRouter = Router();
 
@@ -85,4 +87,27 @@ authRouter.post("/logout", (req, res) => {
 authRouter.get("/me", (req, res) => {
   if (!req.user) return res.json({ loggedIn: false });
   res.json({ loggedIn: true, user: publicUser(req.user) });
+});
+
+authRouter.post("/change-password", authRateLimit, requireAuth, async (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  if (typeof currentPassword !== "string") {
+    return res.status(400).json({ error: "Current password is required." });
+  }
+  const passwordErr = validatePassword(newPassword);
+  if (passwordErr) return res.status(400).json({ error: passwordErr });
+
+  try {
+    const ok = await verifyPassword(req.user.password_hash, currentPassword);
+    if (!ok) return res.status(401).json({ error: "Current password is incorrect." });
+
+    const newHash = await hashPassword(newPassword);
+    db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(newHash, req.user.id);
+    destroyOtherSessions(req.user.id, req.sessionToken);
+
+    res.json({ message: "Password changed." });
+  } catch (err) {
+    console.error("[auth] change-password error", err);
+    res.status(500).json({ error: "Could not change password." });
+  }
 });

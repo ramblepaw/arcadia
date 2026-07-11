@@ -28,6 +28,22 @@
     </div>
 
     <div id="leaderboards"></div>
+
+    <div class="account-card">
+      <h2>Change Password</h2>
+      <form id="change-password-form">
+        <div class="field">
+          <label for="current-password">Current Password</label>
+          <input id="current-password" name="currentPassword" type="password" required autocomplete="current-password">
+        </div>
+        <div class="field">
+          <label for="new-password">New Password</label>
+          <input id="new-password" name="newPassword" type="password" required minlength="10" autocomplete="new-password">
+        </div>
+        <button type="submit">Change Password</button>
+        <div id="change-password-message" class="form-message"></div>
+      </form>
+    </div>
   </div>
 </main>
 

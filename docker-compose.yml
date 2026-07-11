@@ -1,12 +1,13 @@
 services:
-  game-hub:
-    build: .
-    ports:
-      - "8090:8090"
-    volumes:
-      - ./data:/data
+  arcadia:
     environment:
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=change-me-before-deploying
-      - TRUST_PROXY=false
+      ADMIN_PASSWORD: change-me-before-deploying
+      ADMIN_USERNAME: admin
+      TRUST_PROXY: 'true'
+    image: ghcr.io/ramblepaw/arcadia:latest
+    ports:
+      - '8090:8090'
+    pull_policy: always
     restart: unless-stopped
+    volumes:
+      - /mnt/Main Store/Apps/Arcadia/data:/data
