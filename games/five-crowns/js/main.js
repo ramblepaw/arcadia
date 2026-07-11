@@ -103,19 +103,21 @@ function runBotStep() {
   }
 }
 
-function startGame(numBots) {
-  game = new Game(numBots);
+function startGame(numBots, mode) {
+  game = new Game(numBots, mode);
   ui.resetSelection();
   game.subscribe(onStateChange);
   document.getElementById("start-screen").classList.add("hidden");
   document.getElementById("game-screen").classList.remove("hidden");
+  document.getElementById("arrange-btn").classList.toggle("hidden", mode === "manual");
   render();
   if (!game.currentPlayer.isHuman) scheduleBotStep();
 }
 
 document.getElementById("start-btn").addEventListener("click", () => {
   const numBots = parseInt(document.getElementById("bot-count").value, 10);
-  startGame(numBots);
+  const mode = document.getElementById("mode-select").value;
+  startGame(numBots, mode);
 });
 
 document.getElementById("sort-suit-btn").addEventListener("click", () => {
@@ -131,6 +133,16 @@ document.getElementById("sort-rank-btn").addEventListener("click", () => {
 document.getElementById("arrange-btn").addEventListener("click", () => {
   ui.autoArrangeHand(game);
   render();
+});
+
+document.getElementById("form-group-btn").addEventListener("click", () => {
+  const selected = ui.getSelectedCardIds();
+  const result = game.formGroup(0, selected);
+  if (result.valid) ui.resetSelection();
+  render();
+  if (!result.valid) {
+    document.getElementById("player-status").textContent = result.reason;
+  }
 });
 
 document.getElementById("discard-btn").addEventListener("click", () => {

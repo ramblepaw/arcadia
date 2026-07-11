@@ -15,14 +15,26 @@ function playerColor(game, playerId) {
   return CHART_COLORS[idx % CHART_COLORS.length];
 }
 
-let selectedCardId = null;
+// A Set throughout so manual mode can multi-select cards to form a group;
+// assisted mode just never has more than one member in it.
+let selectedCardIds = new Set();
 
 export function resetSelection() {
-  selectedCardId = null;
+  selectedCardIds = new Set();
 }
 
+/** Single-card selection, for discard/go-out - null unless exactly one card is selected. */
 export function getSelectedCardId() {
-  return selectedCardId;
+  return selectedCardIds.size === 1 ? [...selectedCardIds][0] : null;
+}
+
+export function getSelectedCardIds() {
+  return [...selectedCardIds];
+}
+
+function toggleSelection(cardId) {
+  if (selectedCardIds.has(cardId)) selectedCardIds.delete(cardId);
+  else selectedCardIds.add(cardId);
 }
 
 function wildRankLabel(wildRank) {
@@ -141,8 +153,7 @@ function renderPiles(game, handlers) {
   discardEl.onclick = canDrawDiscard ? handlers.onDrawDiscard : null;
 }
 
-function renderHand(game, handlers) {
-  const human = game.players[0];
+function renderHandAssisted(game, handlers, human, canAct, inDiscardPhase) {
   const handEl = document.getElementById("player-hand");
   handEl.innerHTML = "";
 
@@ -150,17 +161,16 @@ function renderHand(game, handlers) {
   const matchedIds = new Set();
   evalResult.groups.forEach((g) => g.cardIds.forEach((id) => matchedIds.add(id)));
 
-  const canAct = game.currentPlayer.isHuman && !game.roundOver;
-  const inDiscardPhase = canAct && game.turnPhase === "discard";
-
   human.hand.forEach((card) => {
     const el = buildCardEl(card, {
       wildRank: game.wildRank,
       matched: matchedIds.has(card.id),
-      selected: selectedCardId === card.id,
+      selected: selectedCardIds.has(card.id),
       onClick: inDiscardPhase
         ? () => {
-            selectedCardId = selectedCardId === card.id ? null : card.id;
+            const already = selectedCardIds.has(card.id);
+            selectedCardIds.clear();
+            if (!already) selectedCardIds.add(card.id);
             handlers.onRerender();
           }
         : null,
@@ -169,7 +179,8 @@ function renderHand(game, handlers) {
   });
 
   const statusEl = document.getElementById("player-status");
-  const canGoOutSelected = inDiscardPhase && selectedCardId != null && game.canGoOutWithCard(0, selectedCardId);
+  const selectedId = getSelectedCardId();
+  const canGoOutSelected = inDiscardPhase && selectedId != null && game.canGoOutWithCard(0, selectedId);
 
   if (game.roundOver) {
     statusEl.textContent = "";
@@ -177,8 +188,8 @@ function renderHand(game, handlers) {
     statusEl.textContent = "";
   } else if (game.turnPhase === "draw") {
     statusEl.textContent = "Draw from the stock or take the discard.";
-  } else if (selectedCardId != null) {
-    const remaining = human.hand.filter((c) => c.id !== selectedCardId);
+  } else if (selectedId != null) {
+    const remaining = human.hand.filter((c) => c.id !== selectedId);
     const remainingDeadwood = evaluateHand(remaining, game.wildRank).deadwoodValue;
     statusEl.textContent = canGoOutSelected
       ? "Discarding that card leaves your hand fully matched — you can go out!"
@@ -190,11 +201,104 @@ function renderHand(game, handlers) {
   }
 
   const discardBtn = document.getElementById("discard-btn");
-  const canDiscardSelected = inDiscardPhase && selectedCardId != null && game.canDiscard(0, selectedCardId);
-  discardBtn.disabled = !canDiscardSelected;
+  discardBtn.disabled = !(inDiscardPhase && selectedId != null && game.canDiscard(0, selectedId));
 
   const goOutBtn = document.getElementById("go-out-btn");
   goOutBtn.disabled = !canGoOutSelected;
+
+  document.getElementById("form-group-btn").classList.add("hidden");
+  document.getElementById("player-groups").innerHTML = "";
+}
+
+function renderHandManual(game, handlers, human, canAct, inDiscardPhase) {
+  const groupsEl = document.getElementById("player-groups");
+  groupsEl.innerHTML = "";
+  const byId = new Map(human.hand.map((c) => [c.id, c]));
+
+  human.groups.forEach((group, groupIdx) => {
+    const row = document.createElement("div");
+    row.className = "formed-group";
+    const label = document.createElement("div");
+    label.className = "formed-group-label";
+    label.textContent = group.kind === "run" ? "Run" : group.kind === "set" ? "Book" : "Wild set";
+    row.appendChild(label);
+    const cardsRow = document.createElement("div");
+    cardsRow.className = "formed-group-cards";
+    group.cardIds.forEach((id) => {
+      const card = byId.get(id);
+      if (!card) return;
+      const el = buildCardEl(card, {
+        small: true,
+        wildRank: game.wildRank,
+        matched: true,
+        onClick: canAct ? () => { game.ungroupCards(0, groupIdx); handlers.onRerender(); } : null,
+      });
+      cardsRow.appendChild(el);
+    });
+    row.appendChild(cardsRow);
+    groupsEl.appendChild(row);
+  });
+
+  const handEl = document.getElementById("player-hand");
+  handEl.innerHTML = "";
+  const looseIds = new Set(game.looseCardIds(0));
+  human.hand.forEach((card) => {
+    if (!looseIds.has(card.id)) return;
+    const el = buildCardEl(card, {
+      wildRank: game.wildRank,
+      selected: selectedCardIds.has(card.id),
+      onClick: canAct
+        ? () => {
+            toggleSelection(card.id);
+            handlers.onRerender();
+          }
+        : null,
+    });
+    handEl.appendChild(el);
+  });
+
+  const statusEl = document.getElementById("player-status");
+  const selectedId = getSelectedCardId();
+  const selCount = selectedCardIds.size;
+  const canGoOutSelected = inDiscardPhase && selectedId != null && game.canGoOutWithCard(0, selectedId);
+
+  if (game.roundOver) {
+    statusEl.textContent = "";
+  } else if (!game.currentPlayer.isHuman) {
+    statusEl.textContent = "";
+  } else if (game.turnPhase === "draw") {
+    statusEl.textContent = "Draw from the stock or take the discard.";
+  } else if (selCount >= 2) {
+    statusEl.textContent = `${selCount} cards selected — press Form Group if they're a valid book or run.`;
+  } else if (canGoOutSelected) {
+    statusEl.textContent = "That's your only ungrouped card — you can go out!";
+  } else if (looseIds.size === 1) {
+    statusEl.textContent = "Only one card left ungrouped — select it to discard or go out.";
+  } else {
+    statusEl.textContent = "Select cards from your hand and press Form Group to declare a book or run.";
+  }
+
+  const discardBtn = document.getElementById("discard-btn");
+  discardBtn.disabled = !(inDiscardPhase && selectedId != null && game.canDiscard(0, selectedId));
+
+  const goOutBtn = document.getElementById("go-out-btn");
+  goOutBtn.disabled = !canGoOutSelected;
+
+  const formGroupBtn = document.getElementById("form-group-btn");
+  formGroupBtn.classList.remove("hidden");
+  formGroupBtn.disabled = !(canAct && selCount >= 3);
+}
+
+function renderHand(game, handlers) {
+  const human = game.players[0];
+  const canAct = game.currentPlayer.isHuman && !game.roundOver;
+  const inDiscardPhase = canAct && game.turnPhase === "discard";
+
+  if (game.mode === "manual") {
+    renderHandManual(game, handlers, human, canAct, inDiscardPhase);
+  } else {
+    renderHandAssisted(game, handlers, human, canAct, inDiscardPhase);
+  }
 }
 
 export function renderAll(game, handlers) {

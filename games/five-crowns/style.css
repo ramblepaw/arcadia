@@ -274,6 +274,12 @@ html, body {
   color: #26200a;
   font-weight: 700;
 }
+#form-group-btn:not(:disabled) {
+  background: var(--stars);
+  border-color: var(--stars);
+  color: white;
+  font-weight: 700;
+}
 
 .hand {
   display: flex;
@@ -281,6 +287,38 @@ html, body {
   gap: 6px;
   flex-wrap: wrap;
   min-height: calc(var(--card-h) + 14px);
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.formed-group {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.formed-group-label {
+  font-size: 0.8em;
+  color: var(--text-dim);
+  min-width: 44px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.formed-group-cards {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
 .player-status {

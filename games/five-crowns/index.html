@@ -21,6 +21,11 @@
       <option value="4">4</option>
       <option value="5">5</option>
     </select>
+    <label for="mode-select">Game mode</label>
+    <select id="mode-select">
+      <option value="assisted" selected>Assisted — the game shows your best arrangement</option>
+      <option value="manual">Manual — you form your own books &amp; runs</option>
+    </select>
     <button id="start-btn">Deal Me In</button>
   </div>
 </div>
@@ -58,9 +63,11 @@
       <button id="sort-suit-btn">Sort by Suit</button>
       <button id="sort-rank-btn">Sort by Rank</button>
       <button id="arrange-btn">Auto-Arrange</button>
+      <button id="form-group-btn" class="hidden" disabled>Form Group</button>
       <button id="go-out-btn" disabled>Go Out</button>
       <button id="discard-btn" disabled>Discard Selected</button>
     </div>
+    <div id="player-groups" class="groups"></div>
     <div id="player-hand" class="hand"></div>
     <div id="player-status" class="player-status"></div>
   </div>

@@ -231,3 +231,45 @@ export function evaluateHand(cards, wildRank) {
 export function handDeadwoodValue(cards, wildRank) {
   return evaluateHand(cards, wildRank).deadwoodValue;
 }
+
+/**
+ * Checks whether one specific, player-chosen set of cards is a legal book or
+ * run - not a search for the best arrangement, a direct yes/no on exactly
+ * these cards (for manual mode, where the player declares their own melds).
+ */
+export function classifyGroup(cards, wildRank) {
+  if (cards.length < 3) {
+    return { valid: false, reason: "A group needs at least 3 cards." };
+  }
+
+  const real = cards.filter((c) => !isWildCard(c, wildRank));
+  if (real.length === 0) {
+    return { valid: true, kind: "wild-set" };
+  }
+
+  const ranks = new Set(real.map((c) => c.rank));
+  if (ranks.size === 1) {
+    return { valid: true, kind: "set" };
+  }
+
+  const suits = new Set(real.map((c) => c.suit));
+  if (suits.size === 1) {
+    const realRanks = real.map((c) => c.rank);
+    if (new Set(realRanks).size !== realRanks.length) {
+      return { valid: false, reason: "A run can't repeat the same rank twice." };
+    }
+    const minR = Math.min(...realRanks);
+    const maxR = Math.max(...realRanks);
+    const naturalSpan = maxR - minR + 1;
+    if (cards.length >= naturalSpan && cards.length <= MAX_RANK - MIN_RANK + 1) {
+      const minStart = Math.max(MIN_RANK, maxR - cards.length + 1);
+      const maxStart = Math.min(minR, MAX_RANK - cards.length + 1);
+      if (minStart <= maxStart) {
+        return { valid: true, kind: "run" };
+      }
+    }
+    return { valid: false, reason: "Not a valid run - check the ranks and wild count." };
+  }
+
+  return { valid: false, reason: "Not a valid book (same rank) or run (same suit, consecutive)." };
+}

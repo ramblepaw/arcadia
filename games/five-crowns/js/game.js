@@ -1,5 +1,5 @@
-import { createDeck, shuffle } from "./deck.js";
-import { evaluateHand } from "./rules.js";
+import { createDeck, shuffle, cardValue } from "./deck.js";
+import { evaluateHand, classifyGroup } from "./rules.js";
 
 const TOTAL_ROUNDS = 11;
 const FIRST_HAND_SIZE = 3;
@@ -21,7 +21,13 @@ function pickBotNames(count) {
 }
 
 export class Game {
-  constructor(numBots) {
+  // mode: "assisted" (deadwood/going-out always computed optimally by the
+  // solver) or "manual" (the human player must declare their own books/runs
+  // via formGroup/ungroupCards - misgrouped or ungrouped cards score as
+  // deadwood even if a better arrangement existed). Bots always play at full
+  // strength regardless of mode; only the human does manual bookkeeping.
+  constructor(numBots, mode = "assisted") {
+    this.mode = mode;
     this.numPlayers = numBots + 1;
     this.players = [];
     this.players.push({ id: 0, name: "You", isHuman: true, hand: [], totalScore: 0, roundScores: [] });
@@ -66,6 +72,7 @@ export class Game {
       p.drawnFromDiscard = false;
       p.drawnCardId = null;
       p.wentOut = false;
+      p.groups = [];
     }
     for (let c = 0; c < size; c++) {
       for (const p of this.players) {
@@ -127,7 +134,50 @@ export class Game {
     if (playerIdx !== this.currentPlayerIndex || this.turnPhase !== "discard") return false;
     const p = this.players[playerIdx];
     if (p.drawnFromDiscard && cardId === p.drawnCardId) return false;
+    if (this.mode === "manual" && this.groupedCardIds(playerIdx).has(cardId)) return false;
     return p.hand.some((c) => c.id === cardId);
+  }
+
+  // --- Manual mode: the player declares their own books/runs. ---
+
+  groupedCardIds(playerIdx) {
+    const ids = new Set();
+    this.players[playerIdx].groups.forEach((g) => g.cardIds.forEach((id) => ids.add(id)));
+    return ids;
+  }
+
+  looseCardIds(playerIdx) {
+    const grouped = this.groupedCardIds(playerIdx);
+    return this.players[playerIdx].hand.filter((c) => !grouped.has(c.id)).map((c) => c.id);
+  }
+
+  /** Validates and, if legal, locks in a new group from currently-loose cards. */
+  formGroup(playerIdx, cardIds) {
+    if (this.mode !== "manual") return { valid: false, reason: "Not in manual mode." };
+    const p = this.players[playerIdx];
+    const grouped = this.groupedCardIds(playerIdx);
+    const uniqueIds = [...new Set(cardIds)];
+    if (uniqueIds.length !== cardIds.length) {
+      return { valid: false, reason: "Duplicate card selected." };
+    }
+    const cards = uniqueIds.map((id) => p.hand.find((c) => c.id === id));
+    if (cards.some((c) => !c) || cards.some((c) => grouped.has(c.id))) {
+      return { valid: false, reason: "Select only loose cards from your own hand." };
+    }
+    const result = classifyGroup(cards, this.wildRank);
+    if (!result.valid) return result;
+    p.groups.push({ kind: result.kind, cardIds: uniqueIds });
+    this.emit();
+    return result;
+  }
+
+  ungroupCards(playerIdx, groupIndex) {
+    if (this.mode !== "manual") return false;
+    const p = this.players[playerIdx];
+    if (groupIndex < 0 || groupIndex >= p.groups.length) return false;
+    p.groups.splice(groupIndex, 1);
+    this.emit();
+    return true;
   }
 
   discardCard(playerIdx, cardId) {
@@ -151,6 +201,16 @@ export class Game {
     if (this.goneOutPlayerIndex !== null) return false;
     if (!this.canDiscard(playerIdx, cardId)) return false;
     const p = this.players[playerIdx];
+    // Manual bookkeeping only applies to the human - bots never call
+    // formGroup, so a bot's groups stay empty and it must keep using the
+    // solver, or it could never legally go out in a manual-mode game.
+    if (this.mode === "manual" && p.isHuman) {
+      // canDiscard already rejected grouped cards, so cardId is loose here;
+      // going out means it's the *only* loose card - everything else must
+      // already be sitting in a group the player declared themselves.
+      const loose = this.looseCardIds(playerIdx);
+      return loose.length === 1 && loose[0] === cardId;
+    }
     const remaining = p.hand.filter((c) => c.id !== cardId);
     return evaluateHand(remaining, this.wildRank).deadwoodValue === 0;
   }
@@ -207,6 +267,13 @@ export class Game {
       let score;
       if (p.wentOut) {
         score = 0;
+      } else if (this.mode === "manual" && p.isHuman) {
+        // Scored on what the player actually declared, not the best-possible
+        // arrangement - an ungrouped or misgrouped card counts as deadwood
+        // even if a valid meld for it existed and they just didn't find it.
+        const loose = this.looseCardIds(p.id);
+        const byId = new Map(p.hand.map((c) => [c.id, c]));
+        score = loose.reduce((sum, id) => sum + cardValue(byId.get(id), this.wildRank), 0);
       } else {
         score = evaluateHand(p.hand, this.wildRank).deadwoodValue;
       }
