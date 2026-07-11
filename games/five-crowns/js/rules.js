@@ -7,9 +7,11 @@ import { SUITS, MIN_RANK, MAX_RANK, isWildCard, cardValue } from "./deck.js";
 function buildSetCandidates(nonWildCards, maxWilds) {
   // A book is 3+ cards of the same rank, suit doesn't matter at all - with a
   // double deck you can legally have e.g. two King of Hearts in one book.
-  // Since a matched card always costs 0, it's never worse to include every
-  // same-rank card in the book, so each rank needs only one base mask (no
-  // per-suit subset enumeration), optionally padded with any number of wilds.
+  // Every non-empty subset of a rank group is a candidate, not just the full
+  // group: a same-rank card might be worth more reserved for a run instead
+  // (e.g. a Jack that could join a Jack-Jack book OR complete a J-Q-K run in
+  // its own suit) - forcing the whole rank group into one book denies the DP
+  // that choice, which is a real bug this fixes.
   const byRank = new Map();
   nonWildCards.forEach((card, idx) => {
     if (!byRank.has(card.rank)) byRank.set(card.rank, []);
@@ -18,12 +20,20 @@ function buildSetCandidates(nonWildCards, maxWilds) {
 
   const candidates = [];
   for (const [rank, idxs] of byRank) {
-    const size = idxs.length;
-    let mask = 0n;
-    idxs.forEach((i) => { mask |= (1n << BigInt(i)); });
-    for (let wildsNeeded = 0; wildsNeeded <= maxWilds; wildsNeeded++) {
-      if (size + wildsNeeded < 3) continue;
-      candidates.push({ mask, wildsNeeded, kind: "set", rank });
+    const L = idxs.length;
+    for (let subsetBits = 1; subsetBits < (1 << L); subsetBits++) {
+      let mask = 0n;
+      let size = 0;
+      for (let b = 0; b < L; b++) {
+        if (subsetBits & (1 << b)) {
+          mask |= (1n << BigInt(idxs[b]));
+          size++;
+        }
+      }
+      for (let wildsNeeded = 0; wildsNeeded <= maxWilds; wildsNeeded++) {
+        if (size + wildsNeeded < 3) continue;
+        candidates.push({ mask, wildsNeeded, kind: "set", rank });
+      }
     }
   }
   return candidates;
