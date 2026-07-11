@@ -1,0 +1,125 @@
+/* Shared styles for auth-related pages (login, register, profile, admin).
+   Expects hub.css to be loaded first for theme variables + base body style. */
+
+.hidden { display: none !important; }
+
+.account-wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 20px 60px;
+}
+
+.account-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-light);
+  border-radius: 14px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+}
+
+.account-card h1, .account-card h2 {
+  margin-top: 0;
+  color: var(--gold);
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-dim);
+  font-size: 0.9em;
+}
+
+.field input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-light);
+  background: #0e3c2a;
+  color: var(--text);
+  font-size: 1em;
+}
+
+.account-card button, .account-card .btn {
+  background: var(--gold);
+  color: #26200a;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.account-card button.secondary {
+  background: var(--panel-light);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.account-card button:hover, .account-card .btn:hover { filter: brightness(1.08); }
+.account-card button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.form-message {
+  margin-top: 14px;
+  font-size: 0.92em;
+}
+.form-message.error { color: #ff8b7a; }
+.form-message.success { color: #7adf9e; }
+
+.account-nav {
+  text-align: center;
+  margin-top: -8px;
+  margin-bottom: 24px;
+}
+.account-nav a { color: var(--text-dim); text-decoration: underline; font-size: 0.9em; }
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 0.92em;
+}
+table.data-table th, table.data-table td {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 10px;
+  text-align: left;
+}
+table.data-table th { color: var(--text-dim); font-weight: 600; font-size: 0.85em; }
+
+table.data-table .row-actions button {
+  padding: 5px 12px;
+  font-size: 0.85em;
+  margin-right: 6px;
+}
+
+.empty-state {
+  color: var(--text-dim);
+  font-size: 0.9em;
+  padding: 16px 0;
+  text-align: center;
+}
+
+/* Auth bar in the hub header */
+.auth-bar {
+  text-align: center;
+  font-size: 0.9em;
+  color: var(--text-dim);
+  padding: 10px 20px 0;
+}
+.auth-bar a { color: var(--gold); text-decoration: none; font-weight: 600; }
+.auth-bar a:hover { text-decoration: underline; }
+.auth-bar button.link-btn {
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1em;
+  text-decoration: none;
+}
+.auth-bar button.link-btn:hover { text-decoration: underline; }

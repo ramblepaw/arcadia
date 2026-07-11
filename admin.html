@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Game Hub</title>
+<link rel="stylesheet" href="hub.css">
+<link rel="stylesheet" href="account.css">
+</head>
+<body>
+
+<header class="hub-header">
+  <h1>Admin</h1>
+  <p class="tagline">Approve signups and manage accounts.</p>
+</header>
+
+<div class="account-nav"><a href="index.html">&larr; Back to Game Hub</a></div>
+
+<main class="account-wrap">
+  <div id="access-denied" class="account-card hidden">
+    <h2>Access denied</h2>
+    <p>You need to be logged in as an admin to view this page.</p>
+    <a class="btn" href="login.html">Log in</a>
+  </div>
+
+  <div id="admin-content" class="hidden">
+    <div class="account-card">
+      <h2>Pending Signups</h2>
+      <div id="pending-table-wrap"><div class="empty-state">Loading...</div></div>
+    </div>
+
+    <div class="account-card">
+      <h2>Create an Account Directly</h2>
+      <form id="create-user-form">
+        <div class="field">
+          <label for="cu-username">Username</label>
+          <input id="cu-username" name="username" required minlength="3" maxlength="32" pattern="[a-zA-Z0-9_-]+">
+        </div>
+        <div class="field">
+          <label for="cu-email">Email (optional)</label>
+          <input id="cu-email" name="email" type="email">
+        </div>
+        <div class="field">
+          <label for="cu-password">Password</label>
+          <input id="cu-password" name="password" type="password" required minlength="10">
+        </div>
+        <button type="submit">Create Account</button>
+        <div id="create-user-message" class="form-message"></div>
+      </form>
+    </div>
+
+    <div class="account-card">
+      <h2>Approved Users</h2>
+      <div id="approved-table-wrap"><div class="empty-state">Loading...</div></div>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>

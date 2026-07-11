@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register - Game Hub</title>
+<link rel="stylesheet" href="hub.css">
+<link rel="stylesheet" href="account.css">
+</head>
+<body>
+
+<header class="hub-header">
+  <h1>Game Hub</h1>
+</header>
+
+<div class="account-nav"><a href="index.html">&larr; Back to Game Hub</a></div>
+
+<main class="account-wrap">
+  <div class="account-card">
+    <h1>Register</h1>
+    <form id="register-form">
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" name="username" required minlength="3" maxlength="32" pattern="[a-zA-Z0-9_-]+" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="email">Email (optional)</label>
+        <input id="email" name="email" type="email" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required minlength="10" autocomplete="new-password">
+      </div>
+      <button type="submit">Create Account</button>
+      <div id="message" class="form-message"></div>
+    </form>
+  </div>
+  <div class="account-card">
+    <p>New accounts need admin approval before you can log in. Already approved? <a href="login.html">Log in here</a>.</p>
+  </div>
+</main>
+
+<script type="module" src="register.js"></script>
+</body>
+</html>

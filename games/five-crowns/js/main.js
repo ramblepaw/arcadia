@@ -1,6 +1,7 @@
 import { Game } from "./game.js";
 import { botDecideDraw, chooseDiscard } from "./bot.js";
 import * as ui from "./ui.js";
+import { getMe, recordPlay } from "/api-client.js";
 
 const BOT_STEP_DELAY = 650;
 
@@ -30,6 +31,7 @@ function onStateChange() {
         ui.hideRoundModal();
         if (game.gameOver) {
           ui.showGameOverModal(game);
+          reportGameResult(game);
         } else {
           ui.resetSelection();
           game.nextRound();
@@ -41,6 +43,26 @@ function onStateChange() {
 
   if (!game.currentPlayer.isHuman) {
     scheduleBotStep();
+  }
+}
+
+async function reportGameResult(finishedGame) {
+  try {
+    const me = await getMe();
+    if (!me) return; // guest - nothing to record
+
+    const human = finishedGame.players.find((p) => p.isHuman);
+    const standings = finishedGame.standings();
+    const result = standings[0].id === human.id ? "win" : "loss";
+
+    await recordPlay({
+      gameSlug: "five-crowns",
+      score: human.totalScore,
+      result,
+      details: { roundScores: human.roundScores, numPlayers: finishedGame.numPlayers },
+    });
+  } catch (err) {
+    console.warn("[five-crowns] could not record game result:", err);
   }
 }
 

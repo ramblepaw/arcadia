@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile - Game Hub</title>
+<link rel="stylesheet" href="hub.css">
+<link rel="stylesheet" href="account.css">
+</head>
+<body>
+
+<header class="hub-header">
+  <h1 id="profile-heading">Profile</h1>
+</header>
+
+<div class="account-nav"><a href="index.html">&larr; Back to Game Hub</a></div>
+
+<main class="account-wrap">
+  <div id="signed-out" class="account-card hidden">
+    <p>You need to be logged in to view your profile.</p>
+    <a class="btn" href="login.html?redirect=profile.html">Log in</a>
+  </div>
+
+  <div id="profile-content" class="hidden">
+    <div class="account-card">
+      <h2>Your Recent Games</h2>
+      <div id="stats-table-wrap"><div class="empty-state">Loading...</div></div>
+    </div>
+
+    <div id="leaderboards"></div>
+  </div>
+</main>
+
+<script type="module" src="profile.js"></script>
+</body>
+</html>
