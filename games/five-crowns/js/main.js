@@ -166,3 +166,11 @@ document.getElementById("view-score-table-btn").addEventListener("click", () => 
 document.getElementById("play-again-btn").addEventListener("click", () => {
   location.reload();
 });
+
+document.getElementById("main-menu-btn").addEventListener("click", () => {
+  const midGame = game && !game.gameOver;
+  if (midGame && !confirm("Leave this game in progress? Your current game will be lost.")) {
+    return;
+  }
+  location.href = "../../index.html";
+});

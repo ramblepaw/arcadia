@@ -116,7 +116,12 @@ html, body {
 #round-info { font-weight: 600; color: var(--gold); }
 #turn-info { font-size: 0.9em; color: var(--text-dim); margin-top: 2px; }
 
-#scores-btn {
+.hud-right {
+  display: flex;
+  gap: 8px;
+}
+
+#scores-btn, #main-menu-btn {
   background: var(--panel-light);
   color: var(--text);
   border: 1px solid rgba(255,255,255,0.2);
@@ -124,7 +129,7 @@ html, body {
   border-radius: 8px;
   cursor: pointer;
 }
-#scores-btn:hover { background: rgba(255,255,255,0.18); }
+#scores-btn:hover, #main-menu-btn:hover { background: rgba(255,255,255,0.18); }
 
 .opponents {
   display: flex;
@@ -452,11 +457,36 @@ table.score-table td.total-row { font-weight: 700; color: var(--gold); }
   justify-content: center;
   margin-top: 12px;
 }
-.game-over-actions button.secondary {
+.game-over-actions button.secondary,
+.game-over-actions a.btn.secondary {
   background: var(--panel-light);
   color: var(--text);
   border: 1px solid rgba(255,255,255,0.2);
 }
+.game-over-actions a.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1.05em;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.game-over-actions a.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(232,193,74,0.35);
+}
+
+.back-to-hub {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: var(--text-dim);
+  font-size: 0.85em;
+  text-decoration: none;
+}
+.back-to-hub:hover { color: var(--gold); text-decoration: underline; }
 
 @media (max-width: 480px) {
   :root { --card-w: 54px; --card-h: 78px; }
