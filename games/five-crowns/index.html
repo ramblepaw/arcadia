@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Five Crowns</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="start-screen" class="screen">
+  <div class="start-card">
+    <h1>Five Crowns</h1>
+    <p class="tagline">11 rounds. Runs, sets, and wild kings.</p>
+    <label for="bot-count">Number of AI opponents</label>
+    <select id="bot-count">
+      <option value="1">1</option>
+      <option value="2" selected>2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+    <button id="start-btn">Deal Me In</button>
+  </div>
+</div>
+
+<div id="game-screen" class="screen hidden">
+  <header id="hud">
+    <div class="hud-left">
+      <div id="round-info">Round 1 &middot; 3 cards &middot; Wild: 3s</div>
+      <div id="turn-info">Waiting...</div>
+    </div>
+    <div class="hud-right">
+      <button id="scores-btn">Scores</button>
+    </div>
+  </header>
+
+  <div id="opponents" class="opponents"></div>
+
+  <div class="table-mid">
+    <div class="piles">
+      <div class="pile-wrap">
+        <div id="stock-pile" class="pile stock"></div>
+        <div class="pile-label">Stock</div>
+      </div>
+      <div class="pile-wrap">
+        <div id="discard-pile" class="pile discard"></div>
+        <div class="pile-label">Discard</div>
+      </div>
+    </div>
+    <div id="center-message" class="center-message"></div>
+  </div>
+
+  <div id="player-area" class="player-area">
+    <div class="player-controls">
+      <button id="sort-suit-btn">Sort by Suit</button>
+      <button id="sort-rank-btn">Sort by Rank</button>
+      <button id="arrange-btn">Auto-Arrange</button>
+      <button id="go-out-btn" disabled>Go Out</button>
+      <button id="discard-btn" disabled>Discard Selected</button>
+    </div>
+    <div id="player-hand" class="hand"></div>
+    <div id="player-status" class="player-status"></div>
+  </div>
+</div>
+
+<div id="scores-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2>Scoreboard</h2>
+    <div id="scores-table-wrap"></div>
+    <button id="close-scores-btn">Close</button>
+  </div>
+</div>
+
+<div id="round-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="round-modal-title">Round Over</h2>
+    <div id="round-modal-body"></div>
+    <button id="round-modal-continue-btn">Continue</button>
+  </div>
+</div>
+
+<div id="game-over-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2>Game Over</h2>
+    <div id="final-standings"></div>
+    <button id="play-again-btn">Play Again</button>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
