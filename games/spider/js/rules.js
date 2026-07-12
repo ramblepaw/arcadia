@@ -95,3 +95,23 @@ export function remainingCount(tableau, stock) {
   const inTableau = tableau.reduce((n, column) => n + column.length, 0);
   return inTableau + stock.length;
 }
+
+/**
+ * True if any tableau shuffle is currently legal, or another deal from the
+ * stock is available. If neither holds, no move can ever change the board -
+ * Spider's stock is single-pass (no redeals), so this is a real deadlock.
+ */
+export function hasAnyMove(tableau, canDeal) {
+  for (let from = 0; from < tableau.length; from++) {
+    const column = tableau[from];
+    for (let i = 0; i < column.length; i++) {
+      const run = getMovableRun(column, i);
+      if (!run) continue;
+      for (let to = 0; to < tableau.length; to++) {
+        if (to === from) continue;
+        if (canDropOn(tableau[to], column, i)) return true;
+      }
+    }
+  }
+  return canDeal;
+}

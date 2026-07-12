@@ -5,9 +5,6 @@ import { getMe, recordPlay } from "/api-client.js";
 let game = null;
 
 async function reportGameResult(finishedGame) {
-  // Only wins are meaningful data points for this open-ended game - there's
-  // no forced-loss detection, so a player can always keep trying instead.
-  if (finishedGame.outcome !== "win") return;
   try {
     const me = await getMe();
     if (!me) return; // guest - nothing to record
@@ -15,7 +12,7 @@ async function reportGameResult(finishedGame) {
     await recordPlay({
       gameSlug: "klondike",
       score: finishedGame.score,
-      result: "win",
+      result: finishedGame.outcome,
       details: {
         movesUsed: finishedGame.moves,
         foundationCards: finishedGame.foundationCount(),

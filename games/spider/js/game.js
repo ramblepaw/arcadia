@@ -7,6 +7,7 @@ import {
   hasEmptyColumn,
   checkAndClearSequence,
   remainingCount,
+  hasAnyMove,
 } from "./rules.js";
 
 export const TOTAL_CARDS = 104;
@@ -214,6 +215,10 @@ export class Game {
       this.phase = "gameOver";
       this.outcome = "win";
       this.message = "All eight sequences complete - you win!";
+    } else if (!hasAnyMove(this.tableau, this.canDeal())) {
+      this.phase = "gameOver";
+      this.outcome = "loss";
+      this.message = "No legal moves remain - game over.";
     }
 
     this.emit();

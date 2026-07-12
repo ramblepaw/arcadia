@@ -8,7 +8,6 @@ async function reportGameResult(finishedGame) {
   try {
     const me = await getMe();
     if (!me) return; // guest - nothing to record
-    if (finishedGame.outcome !== "win") return; // only completed wins are meaningful here
 
     await recordPlay({
       gameSlug: "freecell",

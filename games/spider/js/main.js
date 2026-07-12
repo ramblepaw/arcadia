@@ -5,9 +5,6 @@ import { getMe, recordPlay } from "/api-client.js";
 let game = null;
 
 async function reportGameResult(finishedGame) {
-  // Only completed wins are meaningful data here - Spider has no forced-
-  // loss state, so an abandoned/quit game never reaches gameOver.
-  if (finishedGame.outcome !== "win") return;
   try {
     const me = await getMe();
     if (!me) return; // guest - nothing to record

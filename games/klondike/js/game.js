@@ -5,6 +5,7 @@ import {
   getMovableSequence,
   hasWon,
   countOffFoundation,
+  hasAnyMove,
 } from "./rules.js";
 
 export const NUM_COLUMNS = 7;
@@ -309,7 +310,8 @@ export class Game {
     this.selection = null;
     this.moves++;
     this.message = "";
-    this.emit();
+    this.checkOutcome();
+    if (this.phase === "playing") this.emit();
     return true;
   }
 
@@ -318,6 +320,11 @@ export class Game {
       this.phase = "gameOver";
       this.outcome = "win";
       this.message = "All four foundations complete - you win!";
+      this.emit();
+    } else if (!hasAnyMove(this.tableau, this.stock, this.waste, this.foundations)) {
+      this.phase = "gameOver";
+      this.outcome = "loss";
+      this.message = "No legal moves remain - game over.";
       this.emit();
     }
   }

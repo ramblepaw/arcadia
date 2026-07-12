@@ -27,7 +27,7 @@ function buildCardEl(card, { faceDown = false, selected = false, legal = false, 
 function renderHud(game) {
   const statusEl = document.getElementById("status-info");
   if (game.isGameOver) {
-    statusEl.textContent = "All four foundations complete!";
+    statusEl.textContent = game.outcome === "win" ? "All four foundations complete!" : "No legal moves left.";
   } else {
     statusEl.textContent = "Click a card to select it, then click where it should go.";
   }
@@ -166,9 +166,11 @@ export function renderAll(game, handlers) {
 }
 
 export function showGameOverModal(game) {
-  document.getElementById("game-over-title").textContent = "You Win!";
-  document.getElementById("game-over-detail").textContent =
-    `All ${TOTAL_CARDS} cards made it to the foundations in ${game.moves} moves, scoring ${game.score} points` +
-    (game.redeals > 0 ? ` (with ${game.redeals} redeal${game.redeals === 1 ? "" : "s"}).` : ".");
+  const win = game.outcome === "win";
+  document.getElementById("game-over-title").textContent = win ? "You Win!" : "No Moves Left";
+  document.getElementById("game-over-detail").textContent = win
+    ? `All ${TOTAL_CARDS} cards made it to the foundations in ${game.moves} moves, scoring ${game.score} points` +
+      (game.redeals > 0 ? ` (with ${game.redeals} redeal${game.redeals === 1 ? "" : "s"}).` : ".")
+    : `No legal moves remain. ${game.foundationCount()} of ${TOTAL_CARDS} cards reached the foundations, scoring ${game.score} points.`;
   document.getElementById("game-over-modal").classList.remove("hidden");
 }

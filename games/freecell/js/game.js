@@ -1,5 +1,5 @@
 import { createDeck, shuffle, SUITS } from "./deck.js";
-import { getRunFromIndex, canPlaceOnTableau, canPlaceOnFoundation, maxSupermove } from "./rules.js";
+import { getRunFromIndex, canPlaceOnTableau, canPlaceOnFoundation, maxSupermove, hasAnyMove } from "./rules.js";
 
 export const TOTAL_CARDS = 52;
 export const COLUMN_COUNTS = [7, 7, 7, 7, 6, 6, 6, 6];
@@ -250,6 +250,11 @@ export class Game {
       this.phase = "gameOver";
       this.outcome = "win";
       this.message = "All four foundations complete - you win!";
+      this.emit();
+    } else if (!hasAnyMove(this.tableau, this.freeCells, this.foundations)) {
+      this.phase = "gameOver";
+      this.outcome = "loss";
+      this.message = "No legal moves remain - game over.";
       this.emit();
     }
   }
