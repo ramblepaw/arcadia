@@ -5,6 +5,50 @@ function cellSymbol(cell) {
   return String(cell.adjacent);
 }
 
+const LONG_PRESS_MS = 450;
+const MOVE_TOLERANCE_PX = 10;
+
+// The board is rebuilt from scratch on every render (see renderBoard), so a
+// long-press timer's target element can be destroyed mid-gesture. This flag
+// lives at module scope instead of on the element so it survives that
+// rebuild and still suppresses the synthetic click that trails a touchend.
+let suppressNextClick = false;
+
+function attachTouchFlagging(el, r, c, handlers) {
+  let timer = null;
+  let startX = 0;
+  let startY = 0;
+
+  el.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    timer = setTimeout(() => {
+      timer = null;
+      suppressNextClick = true;
+      handlers.onFlag(r, c);
+      if (navigator.vibrate) navigator.vibrate(15);
+    }, LONG_PRESS_MS);
+  }, { passive: true });
+
+  el.addEventListener("touchmove", (e) => {
+    if (!timer) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (Math.hypot(dx, dy) > MOVE_TOLERANCE_PX) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  }, { passive: true });
+
+  el.addEventListener("touchend", () => {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  });
+}
+
 function buildCellEl(cell, r, c, handlers, isExploded) {
   const el = document.createElement("div");
   const classes = ["cell"];
@@ -19,12 +63,19 @@ function buildCellEl(cell, r, c, handlers, isExploded) {
   }
   el.className = classes.join(" ");
   el.textContent = cellSymbol(cell);
-  el.addEventListener("click", () => handlers.onCellClick(r, c));
+  el.addEventListener("click", () => {
+    if (suppressNextClick) {
+      suppressNextClick = false;
+      return;
+    }
+    handlers.onCellClick(r, c);
+  });
   el.addEventListener("dblclick", () => handlers.onChord(r, c));
   el.addEventListener("contextmenu", (e) => {
     e.preventDefault();
     handlers.onFlag(r, c);
   });
+  attachTouchFlagging(el, r, c, handlers);
   return el;
 }
 

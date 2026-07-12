@@ -220,6 +220,9 @@ html, body {
   font-size: calc(var(--cell-size) * 0.5);
   font-weight: 800;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
   border-radius: 2px;
 }
 
