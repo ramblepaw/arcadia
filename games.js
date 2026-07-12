@@ -31,4 +31,13 @@ export const GAMES = [
     scoreDirection: "asc",
     leaderboardMetric: "winRate",
   },
+  {
+    slug: "minesweeper",
+    title: "Minesweeper",
+    tagline: "Clear the field without setting off a mine.",
+    path: "games/minesweeper/index.html",
+    accent: "#a06bf0",
+    scoreDirection: "asc",
+    leaderboardMetric: "winRate",
+  },
 ];

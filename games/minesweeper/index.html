@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minesweeper</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="start-screen" class="screen">
+  <div class="start-card">
+    <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
+    <h1>Minesweeper</h1>
+    <p class="tagline">Clear the field without setting off a mine.</p>
+    <div class="difficulty-list">
+      <button class="difficulty-btn" data-difficulty="beginner">Beginner <span>9&times;9, 10 mines</span></button>
+      <button class="difficulty-btn" data-difficulty="intermediate">Intermediate <span>16&times;16, 40 mines</span></button>
+      <button class="difficulty-btn" data-difficulty="expert">Expert <span>16&times;30, 99 mines</span></button>
+    </div>
+    <button id="rules-btn" class="link-btn">How to Play</button>
+  </div>
+</div>
+
+<div id="game-screen" class="screen hidden">
+  <header id="hud">
+    <div class="hud-left">
+      <div id="mine-counter" class="counter">010</div>
+      <div id="difficulty-label" class="requirement-badge"></div>
+      <button id="flag-mode-btn" class="flag-mode-btn" title="Toggle flag mode (for touch devices)">&#x1F6A9;</button>
+    </div>
+    <button id="reset-face" class="reset-face" title="New game">&#x1F642;</button>
+    <div class="hud-right">
+      <div id="timer" class="counter">000</div>
+      <button id="main-menu-btn">Main Menu</button>
+    </div>
+  </header>
+
+  <div class="table-mid">
+    <div id="board-scroll" class="board-scroll">
+      <div id="board" class="board"></div>
+    </div>
+  </div>
+
+  <div id="status-bar">
+    <div id="status-info"></div>
+  </div>
+</div>
+
+<div id="rules-modal" class="modal hidden">
+  <div class="modal-box rules-box">
+    <h2>How to Play Minesweeper</h2>
+
+    <h3>Goal</h3>
+    <p>Reveal every cell on the board that isn't hiding a mine.</p>
+
+    <h3>Controls</h3>
+    <p>Click (or tap) a hidden cell to reveal it. Right-click a hidden cell to flag it as a suspected mine. Double-click a revealed number once you've flagged that many mines around it to auto-reveal its remaining neighbors. On touch devices, use the flag toggle in the header to switch taps between revealing and flagging.</p>
+
+    <h3>Numbers</h3>
+    <p>A revealed number tells you how many mines are hiding in the up-to-8 cells touching it. Use that to work out where it's safe to click next.</p>
+
+    <h3>Winning &amp; Losing</h3>
+    <p>Reveal every safe cell to clear the field and win. Reveal a mine and the game ends immediately.</p>
+
+    <button id="close-rules-btn">Close</button>
+  </div>
+</div>
+
+<div id="game-over-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="game-over-title">Game Over</h2>
+    <p id="game-over-detail"></p>
+    <div class="game-over-actions">
+      <button id="play-again-btn">Play Again</button>
+      <a href="../../index.html" class="btn secondary">Main Menu</a>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
