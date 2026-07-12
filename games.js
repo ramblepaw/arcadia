@@ -40,4 +40,13 @@ export const GAMES = [
     scoreDirection: "asc",
     leaderboardMetric: "winRate",
   },
+  {
+    slug: "bullshit",
+    title: "Bullshit",
+    tagline: "Bluff your cards away. Call it, or trust it.",
+    path: "games/bullshit/index.html",
+    accent: "#e07b39",
+    scoreDirection: "asc",
+    leaderboardMetric: "winRate",
+  },
 ];
