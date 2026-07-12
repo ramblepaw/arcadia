@@ -93,9 +93,13 @@ playsRouter.get("/leaderboard/:gameSlug", (req, res) => {
   const order = req.query.order === "desc" ? "DESC" : "ASC";
   const aggregate = order === "DESC" ? "MAX" : "MIN";
 
+  // Best score is still the primary ranking here, but win rate rides along
+  // as an extra column - games with a meaningful score (unlike the
+  // winRate-metric ones above) still benefit from showing both.
   const rows = db.prepare(`
     SELECT users.username AS username,
            ${aggregate}(plays.score) AS bestScore,
+           ROUND(100.0 * SUM(CASE WHEN plays.result = 'win' THEN 1 ELSE 0 END) / COUNT(*), 1) AS winRate,
            COUNT(*) AS playCount
     FROM plays
     JOIN users ON users.id = plays.user_id

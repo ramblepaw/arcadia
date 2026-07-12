@@ -47,12 +47,19 @@ async function renderLeaderboards() {
       }
       const table = document.createElement("table");
       table.className = "data-table";
-      const valueHeader = metric === "winRate" ? "Win %" : "Best Score";
-      table.innerHTML = `<tr><th>#</th><th>Player</th><th>${valueHeader}</th><th>Plays</th></tr>`;
+      // winRate-metric games only ever show win % (their raw score isn't a
+      // meaningful ranking); score-metric games show both, since best score
+      // stays the primary ranking but win % is still useful to see.
+      table.innerHTML =
+        metric === "winRate"
+          ? "<tr><th>#</th><th>Player</th><th>Win %</th><th>Plays</th></tr>"
+          : "<tr><th>#</th><th>Player</th><th>Best Score</th><th>Win %</th><th>Plays</th></tr>";
       board.forEach((row, i) => {
-        const value = metric === "winRate" ? `${row.winRate}%` : row.bestScore;
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${i + 1}</td><td>${row.username}</td><td>${value}</td><td>${row.playCount}</td>`;
+        tr.innerHTML =
+          metric === "winRate"
+            ? `<td>${i + 1}</td><td>${row.username}</td><td>${row.winRate}%</td><td>${row.playCount}</td>`
+            : `<td>${i + 1}</td><td>${row.username}</td><td>${row.bestScore}</td><td>${row.winRate}%</td><td>${row.playCount}</td>`;
         table.appendChild(tr);
       });
       body.replaceWith(table);
