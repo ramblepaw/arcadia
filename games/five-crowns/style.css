@@ -95,6 +95,24 @@ html, body {
   box-shadow: 0 6px 16px rgba(232,193,74,0.35);
 }
 
+.start-card button.link-btn {
+  display: block;
+  margin: 14px auto 0;
+  background: none;
+  color: var(--text-dim);
+  border: none;
+  padding: 4px;
+  font-size: 0.85em;
+  font-weight: 500;
+  text-decoration: underline;
+  box-shadow: none;
+}
+.start-card button.link-btn:hover {
+  color: var(--gold);
+  transform: none;
+  box-shadow: none;
+}
+
 /* ---------- Game screen layout ---------- */
 #game-screen {
   min-height: 100vh;
@@ -433,6 +451,26 @@ html, body {
 }
 
 .modal-box h2 { color: var(--gold); margin-top: 0; }
+
+.rules-box {
+  max-width: 620px;
+  text-align: left;
+}
+.rules-box h3 {
+  color: var(--gold);
+  margin: 18px 0 4px;
+  font-size: 1.05em;
+}
+.rules-box h3:first-of-type { margin-top: 4px; }
+.rules-box p, .rules-box ul {
+  margin: 4px 0 8px;
+  color: var(--text);
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+.rules-box ul { padding-left: 20px; }
+.rules-box li { margin-bottom: 4px; }
+.rules-box button { margin-top: 12px; }
 
 table.score-table {
   width: 100%;

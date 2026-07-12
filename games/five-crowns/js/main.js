@@ -120,6 +120,14 @@ document.getElementById("start-btn").addEventListener("click", () => {
   startGame(numBots, mode);
 });
 
+document.getElementById("rules-btn").addEventListener("click", () => {
+  document.getElementById("rules-modal").classList.remove("hidden");
+});
+
+document.getElementById("close-rules-btn").addEventListener("click", () => {
+  document.getElementById("rules-modal").classList.add("hidden");
+});
+
 document.getElementById("sort-suit-btn").addEventListener("click", () => {
   ui.sortHandBySuit(game);
   render();

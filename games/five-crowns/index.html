@@ -27,6 +27,7 @@
       <option value="manual">Manual — you form your own books &amp; runs</option>
     </select>
     <button id="start-btn">Deal Me In</button>
+    <button id="rules-btn" class="link-btn">How to Play</button>
   </div>
 </div>
 
@@ -70,6 +71,48 @@
     <div id="player-groups" class="groups"></div>
     <div id="player-hand" class="hand"></div>
     <div id="player-status" class="player-status"></div>
+  </div>
+</div>
+
+<div id="rules-modal" class="modal hidden">
+  <div class="modal-box rules-box">
+    <h2>How to Play Five Crowns</h2>
+
+    <h3>Goal</h3>
+    <p>Score the fewest points over 11 rounds. Round 1 deals 3 cards; each round adds one more, up to 13 cards in round 11.</p>
+
+    <h3>Wild Cards</h3>
+    <p>Jokers are always wild. Each round also has a rotating wild rank equal to that round's hand size — 3s wild in round 1, 4s in round 2, and so on up to Kings wild in round 11.</p>
+
+    <h3>Your Turn</h3>
+    <p>Draw one card, either blind from the stock or the visible top of the discard pile, then discard one card (you can't discard the exact card you just took from the discard pile).</p>
+
+    <h3>Books &amp; Runs</h3>
+    <p>Cards score 0 as long as they're part of a valid group:</p>
+    <ul>
+      <li><strong>Book</strong> — 3 or more cards of the same rank. Suit doesn't matter, and duplicate suits are fine (it's a double deck).</li>
+      <li><strong>Run</strong> — 3 or more consecutive ranks in the same suit.</li>
+      <li>Wild cards can fill any gap in either a book or a run, and there's no limit to how many wilds one group can use.</li>
+    </ul>
+
+    <h3>Going Out</h3>
+    <p>After drawing, if every card in your hand except one can be arranged into valid books/runs, you may go out: lay down your groups and discard that last card instead of a normal discard. Everyone else then gets exactly one more turn before the round is scored.</p>
+
+    <h3>Scoring</h3>
+    <p>Whoever went out scores 0 for the round. Everyone else totals up whatever's left ungrouped in their hand:</p>
+    <ul>
+      <li>Number cards — face value</li>
+      <li>Jack / Queen / King — 11 / 12 / 13</li>
+      <li>That round's wild-rank card — 20</li>
+      <li>Joker — 50</li>
+    </ul>
+    <p>Lowest total after 11 rounds wins.</p>
+
+    <h3>Game Modes</h3>
+    <p><strong>Assisted</strong> — the game always shows your best possible arrangement and computes your deadwood for you.</p>
+    <p><strong>Manual</strong> — you select cards and declare your own books/runs with the Form Group button. Anything you never group counts as deadwood at round end, even if a valid group existed and you didn't spot it — closer to how the physical card game actually works.</p>
+
+    <button id="close-rules-btn">Close</button>
   </div>
 </div>
 
