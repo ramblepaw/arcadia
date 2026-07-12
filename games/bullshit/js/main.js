@@ -117,6 +117,11 @@ document.getElementById("close-rules-btn").addEventListener("click", () => {
   document.getElementById("rules-modal").classList.add("hidden");
 });
 
+document.getElementById("sort-rank-btn").addEventListener("click", () => {
+  ui.sortHandByRank(game);
+  render();
+});
+
 document.getElementById("play-btn").addEventListener("click", () => {
   const ids = ui.getSelectedCardIds();
   const result = game.playCards(0, ids);

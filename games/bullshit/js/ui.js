@@ -185,6 +185,12 @@ function renderPlayerHand(game, handlers) {
     : "Play Selected";
 }
 
+const SUIT_ORDER = ["hearts", "diamonds", "clubs", "spades"];
+
+export function sortHandByRank(game) {
+  game.players[0].hand.sort((a, b) => a.rank - b.rank || SUIT_ORDER.indexOf(a.suit) - SUIT_ORDER.indexOf(b.suit));
+}
+
 export function renderAll(game, handlers) {
   renderHud(game);
   renderLog(game);
