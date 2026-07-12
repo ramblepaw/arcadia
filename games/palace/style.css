@@ -172,7 +172,7 @@ html, body {
 .opponent .opp-name { font-weight: 600; margin-bottom: 4px; }
 .opponent .opp-counts { font-size: 0.78em; color: var(--text-dim); margin-bottom: 6px; }
 
-.opp-faceup-row {
+.opp-faceup-row, .opp-card-row {
   display: flex;
   justify-content: center;
   gap: 3px;
@@ -220,17 +220,28 @@ html, body {
   position: relative;
 }
 
-.stock {
-  background: repeating-linear-gradient(45deg, #7a1f2b, #7a1f2b 4px, #5c1620 4px, #5c1620 8px);
-  border: 2px solid #2a0a10;
-  color: var(--text-dim);
-  font-size: 0.75em;
-}
-
-.discard { background: transparent; }
-.discard.empty {
+.pile.empty {
   border: 2px dashed rgba(255,255,255,0.25);
   border-radius: 8px;
+  background: transparent;
+}
+
+.pile-count-badge {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background: var(--gold);
+  color: #26200a;
+  font-size: 0.75em;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
 
 .center-message {
@@ -418,7 +429,6 @@ html, body {
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 #final-standings .standing-row.rank-1 { color: var(--gold); font-weight: 700; font-size: 1.2em; }
-#final-standings .standing-row.rank-last { color: var(--danger); font-weight: 700; }
 
 .game-over-actions {
   display: flex;

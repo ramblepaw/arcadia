@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shed</title>
+<title>Palace</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,8 +11,8 @@
 <div id="start-screen" class="screen">
   <div class="start-card">
     <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
-    <h1>Shed</h1>
-    <p class="tagline">aka Shithead, Palace, Karma. Empty your hand first - don't get stuck holding the pile.</p>
+    <h1>Palace</h1>
+    <p class="tagline">Empty your hand first - don't get stuck holding the pile.</p>
     <label for="bot-count">Number of AI opponents</label>
     <select id="bot-count">
       <option value="1">1</option>
@@ -57,11 +57,11 @@
   <div class="table-mid">
     <div class="piles">
       <div class="pile-wrap">
-        <div id="draw-pile" class="pile stock"></div>
+        <div id="draw-pile" class="pile"></div>
         <div class="pile-label">Draw</div>
       </div>
       <div class="pile-wrap">
-        <div id="play-pile" class="pile discard"></div>
+        <div id="play-pile" class="pile"></div>
         <div class="pile-label">Pile</div>
       </div>
     </div>
@@ -70,6 +70,8 @@
 
   <div id="player-area" class="player-area">
     <div class="player-controls">
+      <button id="sort-rank-btn">Sort by Rank</button>
+      <button id="sort-suit-btn">Sort by Suit</button>
       <button id="play-btn" disabled>Play Selected</button>
       <button id="pickup-btn" disabled>Pick Up Pile</button>
     </div>

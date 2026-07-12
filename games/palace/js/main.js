@@ -3,7 +3,7 @@ import { chooseSwapPairs, choosePlay, chooseFaceDownCardId } from "./bot.js";
 import * as ui from "./ui.js";
 import { getMe, recordPlay } from "/api-client.js";
 
-const BOT_STEP_DELAY = 650;
+const BOT_STEP_DELAY = 1100;
 
 let game = null;
 let botTimer = null;
@@ -36,13 +36,13 @@ async function reportGameResult(finishedGame) {
     const result = human.finishRank === finishedGame.numPlayers ? "loss" : "win";
 
     await recordPlay({
-      gameSlug: "shed",
+      gameSlug: "palace",
       score: human.finishRank,
       result,
       details: { numPlayers: finishedGame.numPlayers, finishRank: human.finishRank },
     });
   } catch (err) {
-    console.warn("[shed] could not record game result:", err);
+    console.warn("[palace] could not record game result:", err);
   }
 }
 
@@ -122,6 +122,16 @@ document.getElementById("start-btn").addEventListener("click", () => {
 
 document.getElementById("swap-ready-btn").addEventListener("click", () => {
   game.finishSwap(0);
+});
+
+document.getElementById("sort-rank-btn").addEventListener("click", () => {
+  ui.sortHandByRank(game);
+  render();
+});
+
+document.getElementById("sort-suit-btn").addEventListener("click", () => {
+  ui.sortHandBySuit(game);
+  render();
 });
 
 document.getElementById("play-btn").addEventListener("click", () => {

@@ -33,7 +33,6 @@ export class Game {
         finished: false, finishRank: null, swapReady: false,
       });
     }
-    this.finishOrder = [];
     this.phase = "swap"; // "swap" -> "playing" -> "gameOver"
     this.pile = [];
     this.pileRequirement = { type: "open" };
@@ -109,7 +108,10 @@ export class Game {
       });
     });
     this.currentPlayerIndex = bestIdx;
-    this.message = `${this.players[bestIdx].name} holds the lowest card and starts.`;
+    const starter = this.players[bestIdx];
+    this.message = starter.isHuman
+      ? "You hold the lowest card and start."
+      : `${starter.name} holds the lowest card and starts.`;
     this.emit();
   }
 
@@ -145,43 +147,31 @@ export class Game {
       p.faceUp.length === 0 && p.faceDown.length === 0;
   }
 
-  recordFinish(p) {
-    p.finished = true;
-    this.finishOrder.push(p.id);
-    p.finishRank = this.finishOrder.length;
-  }
-
-  stepFrom(startIdx, steps) {
-    let idx = startIdx;
-    let remaining = steps;
-    while (remaining > 0) {
-      idx = (idx + 1) % this.numPlayers;
-      if (!this.players[idx].finished) remaining--;
-    }
-    return idx;
-  }
-
-  finishGame() {
-    const remaining = this.players.filter((p) => !p.finished);
-    remaining.forEach((p) => {
-      p.finished = true;
-      this.finishOrder.push(p.id);
-      p.finishRank = this.finishOrder.length;
+  /** The first player to empty hand+face-up+face-down wins - the game ends immediately. */
+  winGame(winner) {
+    winner.finished = true;
+    winner.finishRank = 1;
+    const others = this.players.filter((pl) => pl.id !== winner.id);
+    others.sort((a, b) => {
+      const totalA = a.hand.length + a.faceUp.length + a.faceDown.length;
+      const totalB = b.hand.length + b.faceUp.length + b.faceDown.length;
+      return totalA - totalB;
+    });
+    others.forEach((pl, i) => {
+      pl.finished = true;
+      pl.finishRank = i + 2;
     });
     this.phase = "gameOver";
-    this.message = remaining.length === 1
-      ? `${remaining[0].name} is left holding the pile - the Shed!`
-      : "Game over.";
+    this.message = winner.isHuman ? "You win!" : `${winner.name} wins!`;
     this.emit();
   }
 
-  advanceTurn(actingIdx, { burned, skip, justFinished }) {
-    const activeCount = this.players.filter((p) => !p.finished).length;
-    if (activeCount <= 1) {
-      this.finishGame();
-      return;
-    }
-    if (burned && !justFinished) {
+  stepFrom(startIdx, steps) {
+    return (startIdx + steps) % this.numPlayers;
+  }
+
+  advanceTurn(actingIdx, { burned, skip }) {
+    if (burned) {
       this.currentPlayerIndex = actingIdx;
     } else {
       this.currentPlayerIndex = this.stepFrom(actingIdx, 1 + skip);
@@ -198,18 +188,17 @@ export class Game {
     } else {
       this.pileRequirement = nextRequirement(rank);
     }
-    const justFinished = this.checkFinished(p);
-    if (justFinished) this.recordFinish(p);
-    const skip = !burned && rank === 8 ? count : 0;
 
-    if (justFinished) {
-      this.message = `${p.name} is out!`;
-    } else if (burned) {
-      this.message = `${p.name} burned the pile and goes again!`;
-    } else {
-      this.message = `${p.name} played.`;
+    if (this.checkFinished(p)) {
+      this.winGame(p);
+      return;
     }
-    this.advanceTurn(playerIdx, { burned, skip, justFinished });
+
+    const skip = !burned && rank === 8 ? count : 0;
+    this.message = burned
+      ? `${p.name} burned the pile and ${p.isHuman ? "go" : "goes"} again!`
+      : `${p.name} played.`;
+    this.advanceTurn(playerIdx, { burned, skip });
   }
 
   /** Play one or more same-rank cards from the current player's hand or face-up zone. */
@@ -262,8 +251,10 @@ export class Game {
       p.hand.push(card, ...this.pile);
       this.pile = [];
       this.pileRequirement = { type: "open" };
-      this.message = `${p.name} flipped ${cardLabel(card)} - no good, picks up the pile.`;
-      this.advanceTurn(playerIdx, { burned: false, skip: 0, justFinished: false });
+      this.message = p.isHuman
+        ? `You flipped ${cardLabel(card)} - no good, pick up the pile.`
+        : `${p.name} flipped ${cardLabel(card)} - no good, picks up the pile.`;
+      this.advanceTurn(playerIdx, { burned: false, skip: 0 });
       return true;
     }
 
@@ -272,18 +263,19 @@ export class Game {
     return true;
   }
 
-  /** Voluntary (or forced) pickup of the whole pile into hand. Not available from the face-down zone. */
+  /** Forced pickup of the whole pile into hand - only legal when the player has no playable card. */
   pickUpPile(playerIdx) {
     if (playerIdx !== this.currentPlayerIndex || this.phase !== "playing") return false;
     const p = this.players[playerIdx];
     const zone = this.activeZoneName(p);
     if (zone === "faceDown" || zone === null) return false;
     if (this.pile.length === 0) return false;
+    if (this.hasAnyLegalPlay(playerIdx)) return false;
     p.hand.push(...this.pile);
     this.pile = [];
     this.pileRequirement = { type: "open" };
     this.message = `${p.name} picked up the pile.`;
-    this.advanceTurn(playerIdx, { burned: false, skip: 0, justFinished: false });
+    this.advanceTurn(playerIdx, { burned: false, skip: 0 });
     return true;
   }
 

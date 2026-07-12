@@ -133,7 +133,7 @@ function renderOpponents(game) {
 
     const counts = document.createElement("div");
     counts.className = "opp-counts";
-    counts.textContent = `Hand: ${p.hand.length} · Down: ${p.faceDown.length}`;
+    counts.textContent = `Hand: ${p.hand.length}`;
     div.appendChild(counts);
 
     const faceUpRow = document.createElement("div");
@@ -142,6 +142,13 @@ function renderOpponents(game) {
       faceUpRow.appendChild(buildCardEl(card, { small: true, disabled: true }));
     });
     div.appendChild(faceUpRow);
+
+    const faceDownRow = document.createElement("div");
+    faceDownRow.className = "opp-card-row";
+    p.faceDown.forEach(() => {
+      faceDownRow.appendChild(buildFaceDownEl({ small: true, disabled: true }));
+    });
+    div.appendChild(faceDownRow);
 
     if (p.finished) {
       const badge = document.createElement("div");
@@ -157,9 +164,15 @@ function renderOpponents(game) {
 function renderPiles(game) {
   const drawEl = document.getElementById("draw-pile");
   drawEl.innerHTML = "";
-  drawEl.classList.toggle("empty", game.drawPile.length === 0);
   if (game.drawPile.length > 0) {
-    drawEl.textContent = `${game.drawPile.length} left`;
+    drawEl.classList.remove("empty");
+    drawEl.appendChild(buildFaceDownEl({ disabled: true }));
+    const badge = document.createElement("div");
+    badge.className = "pile-count-badge";
+    badge.textContent = game.drawPile.length;
+    drawEl.appendChild(badge);
+  } else {
+    drawEl.classList.add("empty");
   }
 
   const playEl = document.getElementById("play-pile");
@@ -220,7 +233,19 @@ function renderPlayerZones(game, handlers) {
   });
 
   document.getElementById("play-btn").disabled = !(isMyTurn && selectedCardIds.size > 0);
-  document.getElementById("pickup-btn").disabled = !(isMyTurn && (zone === "hand" || zone === "faceUp") && game.pile.length > 0);
+  const canPickUp = isMyTurn && (zone === "hand" || zone === "faceUp") &&
+    game.pile.length > 0 && !game.hasAnyLegalPlay(0);
+  document.getElementById("pickup-btn").disabled = !canPickUp;
+}
+
+export function sortHandByRank(game) {
+  game.players[0].hand.sort((a, b) => a.rank - b.rank || a.suit.localeCompare(b.suit));
+}
+
+const SUIT_ORDER = ["hearts", "diamonds", "clubs", "spades"];
+export function sortHandBySuit(game) {
+  game.players[0].hand.sort((a, b) =>
+    SUIT_ORDER.indexOf(a.suit) - SUIT_ORDER.indexOf(b.suit) || a.rank - b.rank);
 }
 
 function handleCardClick(game, zone, cardId) {
@@ -255,9 +280,8 @@ export function showGameOverModal(game) {
   standings.forEach((p) => {
     const row = document.createElement("div");
     row.className = "standing-row";
+    const label = p.finishRank === 1 ? `${ordinal(p.finishRank)} — Winner!` : ordinal(p.finishRank);
     if (p.finishRank === 1) row.classList.add("rank-1");
-    if (p.finishRank === standings.length) row.classList.add("rank-last");
-    const label = p.finishRank === standings.length ? `${ordinal(p.finishRank)} — the Shed!` : ordinal(p.finishRank);
     row.innerHTML = `<span>${p.name}</span><span>${label}</span>`;
     wrap.appendChild(row);
   });
