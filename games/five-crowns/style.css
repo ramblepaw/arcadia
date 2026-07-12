@@ -307,6 +307,14 @@ html, body {
   gap: 10px;
 }
 
+.formed-group.deadwood-group {
+  background: transparent;
+  border: 1px dashed rgba(255,255,255,0.2);
+}
+.formed-group.deadwood-group .formed-group-label {
+  color: var(--danger);
+}
+
 .formed-group-label {
   font-size: 0.8em;
   color: var(--text-dim);
@@ -451,12 +459,6 @@ table.score-table td.total-row { font-weight: 700; color: var(--gold); }
   padding: 0 0 6px;
 }
 .round-summary-row.winner { color: var(--gold); font-weight: 700; }
-
-.round-summary-hand {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
 
 #final-standings .standing-row {
   display: flex;

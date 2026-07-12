@@ -41,6 +41,102 @@ function wildRankLabel(wildRank) {
   return rankLabel(wildRank) + "s";
 }
 
+const RANK_PLURAL = { 11: "Jacks", 12: "Queens", 13: "Kings" };
+function rankPlural(rank) {
+  return RANK_PLURAL[rank] || `${rank}s`;
+}
+
+function suitName(suit) {
+  return suit.charAt(0).toUpperCase() + suit.slice(1);
+}
+
+/** Human-readable description of what a group actually is, not just its kind. */
+function describeGroup(kind, cardIds, byId, wildRank) {
+  if (kind === "wild-set") return "All Wild";
+  const cards = cardIds.map((id) => byId.get(id)).filter(Boolean);
+  const real = cards.filter((c) => !isWildCard(c, wildRank));
+
+  if (kind === "set") {
+    const rank = real[0] ? real[0].rank : null;
+    return rank != null ? `Book of ${rankPlural(rank)}` : "Book";
+  }
+
+  if (kind === "run") {
+    const suit = real[0] ? real[0].suit : null;
+    if (!suit) return "Run";
+    const ranks = real.map((c) => c.rank);
+    const minR = Math.min(...ranks);
+    const maxR = Math.max(...ranks);
+    const naturalSpan = maxR - minR + 1;
+    if (naturalSpan === cardIds.length) {
+      return `Run: ${rankLabel(minR)}-${rankLabel(maxR)} of ${suitName(suit)}`;
+    }
+    return `Run of ${suitName(suit)}`;
+  }
+
+  return kind;
+}
+
+/**
+ * Renders a set of melds as separate labeled boxes (what they actually are,
+ * not just a color hint), plus an optional trailing "Unmatched" box for
+ * anything left over. Shared by the live hand (assisted and manual) and the
+ * round-end summary so a meld looks and reads the same everywhere it appears.
+ */
+function renderMeldGroups(container, groups, deadwoodCardIds, byId, wildRank, opts = {}) {
+  const { small = false, onCardClick = null, onGroupClick = null, selectedIds = null } = opts;
+  container.innerHTML = "";
+
+  groups.forEach((g, idx) => {
+    const box = document.createElement("div");
+    box.className = "formed-group";
+    const label = document.createElement("div");
+    label.className = "formed-group-label";
+    label.textContent = describeGroup(g.kind, g.cardIds, byId, wildRank);
+    box.appendChild(label);
+    const cardsRow = document.createElement("div");
+    cardsRow.className = "formed-group-cards";
+    g.cardIds.forEach((id) => {
+      const card = byId.get(id);
+      if (!card) return;
+      const el = buildCardEl(card, {
+        small,
+        wildRank,
+        matched: true,
+        selected: selectedIds ? selectedIds.has(id) : false,
+        onClick: onGroupClick ? () => onGroupClick(idx) : onCardClick ? () => onCardClick(id) : null,
+      });
+      cardsRow.appendChild(el);
+    });
+    box.appendChild(cardsRow);
+    container.appendChild(box);
+  });
+
+  if (deadwoodCardIds && deadwoodCardIds.length > 0) {
+    const box = document.createElement("div");
+    box.className = "formed-group deadwood-group";
+    const label = document.createElement("div");
+    label.className = "formed-group-label";
+    label.textContent = "Unmatched";
+    box.appendChild(label);
+    const cardsRow = document.createElement("div");
+    cardsRow.className = "formed-group-cards";
+    deadwoodCardIds.forEach((id) => {
+      const card = byId.get(id);
+      if (!card) return;
+      const el = buildCardEl(card, {
+        small,
+        wildRank,
+        selected: selectedIds ? selectedIds.has(id) : false,
+        onClick: onCardClick ? () => onCardClick(id) : null,
+      });
+      cardsRow.appendChild(el);
+    });
+    box.appendChild(cardsRow);
+    container.appendChild(box);
+  }
+}
+
 function cardInnerHTML(card) {
   if (card.isJoker) {
     return `<div class="rank-top">JK</div><div class="suit-icon">🃏</div><div class="rank-bottom">JK</div>`;
@@ -154,26 +250,33 @@ function renderPiles(game, handlers) {
 }
 
 function renderHandAssisted(game, handlers, human, canAct, inDiscardPhase) {
+  const byId = new Map(human.hand.map((c) => [c.id, c]));
+  const evalResult = evaluateHand(human.hand, game.wildRank);
+
+  const onCardClick = inDiscardPhase
+    ? (cardId) => {
+        const already = selectedCardIds.has(cardId);
+        selectedCardIds.clear();
+        if (!already) selectedCardIds.add(cardId);
+        handlers.onRerender();
+      }
+    : null;
+
+  // Matched melds get their own labeled boxes (what they actually are, not
+  // just a color hint); anything left over stays in the plain hand row.
+  renderMeldGroups(document.getElementById("player-groups"), evalResult.groups, [], byId, game.wildRank, {
+    onCardClick,
+    selectedIds: selectedCardIds,
+  });
+
   const handEl = document.getElementById("player-hand");
   handEl.innerHTML = "";
-
-  const evalResult = evaluateHand(human.hand, game.wildRank);
-  const matchedIds = new Set();
-  evalResult.groups.forEach((g) => g.cardIds.forEach((id) => matchedIds.add(id)));
-
-  human.hand.forEach((card) => {
+  evalResult.deadwoodCardIds.forEach((id) => {
+    const card = byId.get(id);
     const el = buildCardEl(card, {
       wildRank: game.wildRank,
-      matched: matchedIds.has(card.id),
-      selected: selectedCardIds.has(card.id),
-      onClick: inDiscardPhase
-        ? () => {
-            const already = selectedCardIds.has(card.id);
-            selectedCardIds.clear();
-            if (!already) selectedCardIds.add(card.id);
-            handlers.onRerender();
-          }
-        : null,
+      selected: selectedCardIds.has(id),
+      onClick: onCardClick ? () => onCardClick(id) : null,
     });
     handEl.appendChild(el);
   });
@@ -207,36 +310,18 @@ function renderHandAssisted(game, handlers, human, canAct, inDiscardPhase) {
   goOutBtn.disabled = !canGoOutSelected;
 
   document.getElementById("form-group-btn").classList.add("hidden");
-  document.getElementById("player-groups").innerHTML = "";
 }
 
 function renderHandManual(game, handlers, human, canAct, inDiscardPhase) {
-  const groupsEl = document.getElementById("player-groups");
-  groupsEl.innerHTML = "";
   const byId = new Map(human.hand.map((c) => [c.id, c]));
 
-  human.groups.forEach((group, groupIdx) => {
-    const row = document.createElement("div");
-    row.className = "formed-group";
-    const label = document.createElement("div");
-    label.className = "formed-group-label";
-    label.textContent = group.kind === "run" ? "Run" : group.kind === "set" ? "Book" : "Wild set";
-    row.appendChild(label);
-    const cardsRow = document.createElement("div");
-    cardsRow.className = "formed-group-cards";
-    group.cardIds.forEach((id) => {
-      const card = byId.get(id);
-      if (!card) return;
-      const el = buildCardEl(card, {
-        small: true,
-        wildRank: game.wildRank,
-        matched: true,
-        onClick: canAct ? () => { game.ungroupCards(0, groupIdx); handlers.onRerender(); } : null,
-      });
-      cardsRow.appendChild(el);
-    });
-    row.appendChild(cardsRow);
-    groupsEl.appendChild(row);
+  renderMeldGroups(document.getElementById("player-groups"), human.groups, [], byId, game.wildRank, {
+    onGroupClick: canAct
+      ? (groupIdx) => {
+          game.ungroupCards(0, groupIdx);
+          handlers.onRerender();
+        }
+      : null,
   });
 
   const handEl = document.getElementById("player-hand");
@@ -372,20 +457,18 @@ export function showRoundModal(game, onContinue) {
     row.innerHTML = `<span>${p.name}${p.wentOut ? " (went out)" : ""}</span><span>+${roundScore} → ${p.totalScore}</span>`;
     wrap.appendChild(row);
 
-    const handRow = document.createElement("div");
-    handRow.className = "round-summary-hand";
-    const evalResult = evaluateHand(p.hand, game.wildRank);
-    const matchedIds = new Set();
-    evalResult.groups.forEach((g) => g.cardIds.forEach((id) => matchedIds.add(id)));
-    p.hand.forEach((card) => {
-      const el = buildCardEl(card, {
-        small: true,
-        wildRank: game.wildRank,
-        matched: matchedIds.has(card.id),
-      });
-      handRow.appendChild(el);
-    });
-    wrap.appendChild(handRow);
+    const handWrap = document.createElement("div");
+    handWrap.className = "groups";
+    const byId = new Map(p.hand.map((c) => [c.id, c]));
+    // Manual-mode human: show what they actually declared (matches how they
+    // were scored), not the solver's opinion of what they could have had.
+    const isManualHuman = game.mode === "manual" && p.isHuman;
+    const groups = isManualHuman ? p.groups : evaluateHand(p.hand, game.wildRank).groups;
+    const groupedIds = new Set();
+    groups.forEach((g) => g.cardIds.forEach((id) => groupedIds.add(id)));
+    const deadwoodIds = p.hand.map((c) => c.id).filter((id) => !groupedIds.has(id));
+    renderMeldGroups(handWrap, groups, deadwoodIds, byId, game.wildRank, { small: true });
+    wrap.appendChild(handWrap);
 
     body.appendChild(wrap);
   });
