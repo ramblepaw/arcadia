@@ -1,6 +1,9 @@
 // Registry of games available in the hub. To add a new game, drop its files
 // in games/<slug>/ and add one entry here. scoreDirection tells leaderboards
-// whether a lower or higher score ranks first for this game.
+// whether a lower or higher score ranks first for this game. leaderboardMetric
+// is optional and defaults to "score" (ranks by best score); set it to
+// "winRate" to rank by win percentage instead - useful for solitaire-style
+// games where "score" (e.g. cards left over) isn't the most meaningful stat.
 export const GAMES = [
   {
     slug: "five-crowns",
@@ -25,5 +28,6 @@ export const GAMES = [
     path: "games/pyramid/index.html",
     accent: "#3d6fb5",
     scoreDirection: "asc",
+    leaderboardMetric: "winRate",
   },
 ];

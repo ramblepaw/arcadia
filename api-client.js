@@ -78,10 +78,11 @@ export function getMyStats({ gameSlug, limit } = {}) {
   return request(`/api/stats/me${qs ? `?${qs}` : ""}`).then((body) => body.plays);
 }
 
-export function getLeaderboard(gameSlug, { limit, order } = {}) {
+export function getLeaderboard(gameSlug, { limit, order, metric } = {}) {
   const params = new URLSearchParams();
   if (limit) params.set("limit", limit);
   if (order) params.set("order", order);
+  if (metric) params.set("metric", metric);
   const qs = params.toString();
   return request(`/api/leaderboard/${encodeURIComponent(gameSlug)}${qs ? `?${qs}` : ""}`).then(
     (body) => body.leaderboard

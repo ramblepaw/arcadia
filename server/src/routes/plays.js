@@ -74,6 +74,22 @@ playsRouter.get("/leaderboard/:gameSlug", (req, res) => {
     return res.status(400).json({ error: "Invalid gameSlug." });
   }
   const limit = clampLimit(req.query.limit, 20);
+
+  if (req.query.metric === "winRate") {
+    const rows = db.prepare(`
+      SELECT users.username AS username,
+             ROUND(100.0 * SUM(CASE WHEN plays.result = 'win' THEN 1 ELSE 0 END) / COUNT(*), 1) AS winRate,
+             COUNT(*) AS playCount
+      FROM plays
+      JOIN users ON users.id = plays.user_id
+      WHERE plays.game_slug = ?
+      GROUP BY plays.user_id
+      ORDER BY winRate DESC, playCount DESC
+      LIMIT ?
+    `).all(gameSlug, limit);
+    return res.json({ leaderboard: rows });
+  }
+
   const order = req.query.order === "desc" ? "DESC" : "ASC";
   const aggregate = order === "DESC" ? "MAX" : "MIN";
 

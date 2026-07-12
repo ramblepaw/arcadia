@@ -38,7 +38,8 @@ async function renderLeaderboards() {
     container.appendChild(card);
 
     try {
-      const board = await getLeaderboard(game.slug, { order: game.scoreDirection, limit: 10 });
+      const metric = game.leaderboardMetric || "score";
+      const board = await getLeaderboard(game.slug, { order: game.scoreDirection, metric, limit: 10 });
       const body = card.querySelector("div");
       if (board.length === 0) {
         body.textContent = "No scores recorded yet.";
@@ -46,10 +47,12 @@ async function renderLeaderboards() {
       }
       const table = document.createElement("table");
       table.className = "data-table";
-      table.innerHTML = "<tr><th>#</th><th>Player</th><th>Best Score</th><th>Plays</th></tr>";
+      const valueHeader = metric === "winRate" ? "Win %" : "Best Score";
+      table.innerHTML = `<tr><th>#</th><th>Player</th><th>${valueHeader}</th><th>Plays</th></tr>`;
       board.forEach((row, i) => {
+        const value = metric === "winRate" ? `${row.winRate}%` : row.bestScore;
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${i + 1}</td><td>${row.username}</td><td>${row.bestScore}</td><td>${row.playCount}</td>`;
+        tr.innerHTML = `<td>${i + 1}</td><td>${row.username}</td><td>${value}</td><td>${row.playCount}</td>`;
         table.appendChild(tr);
       });
       body.replaceWith(table);
