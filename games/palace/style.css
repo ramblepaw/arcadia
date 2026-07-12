@@ -371,6 +371,7 @@ html, body {
 .card.suit-clubs { color: var(--clubs); }
 .card.suit-diamonds { color: var(--diamonds); }
 .card.suit-spades { color: var(--spades); }
+.card.joker { color: var(--gold); }
 
 .card.face-down {
   background: repeating-linear-gradient(45deg, #7a1f2b, #7a1f2b 4px, #5c1620 4px, #5c1620 8px);

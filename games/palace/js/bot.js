@@ -1,6 +1,8 @@
 import { legalRanks } from "./rules.js";
+import { JOKER_RANK } from "./deck.js";
 
 function power(card) {
+  if (card.isJoker) return 101;
   if (card.rank === 2) return 100;
   if (card.rank === 10) return 99;
   if (card.rank === 7) return 90;
@@ -54,7 +56,7 @@ export function choosePlay(zoneCards, requirement, pileLength) {
   const legal = legalRanks(zoneCards, requirement);
   if (legal.length === 0) return null;
 
-  const nonSpecial = legal.filter((r) => r !== 2 && r !== 10);
+  const nonSpecial = legal.filter((r) => r !== 2 && r !== 10 && r !== JOKER_RANK);
   let chosenRank;
   if (nonSpecial.length > 0) {
     chosenRank = weightedChoice(nonSpecial, (r) => {
@@ -65,7 +67,12 @@ export function choosePlay(zoneCards, requirement, pileLength) {
     const specialsAvail = [];
     if (legal.includes(10)) specialsAvail.push(10);
     if (legal.includes(2)) specialsAvail.push(2);
-    chosenRank = weightedChoice(specialsAvail, (r) => (r === 10 ? (pileLength >= 3 ? 3 : 1) : 2));
+    if (legal.includes(JOKER_RANK)) specialsAvail.push(JOKER_RANK);
+    chosenRank = weightedChoice(specialsAvail, (r) => {
+      if (r === 10) return pileLength >= 3 ? 3 : 1;
+      if (r === JOKER_RANK) return 1;
+      return 2;
+    });
   }
   return zoneCards.filter((c) => c.rank === chosenRank).map((c) => c.id);
 }

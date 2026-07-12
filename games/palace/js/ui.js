@@ -1,4 +1,4 @@
-import { rankLabel, suitIcon, isSpecial } from "./deck.js";
+import { rankLabel, suitIcon, isSpecial, MAX_RANK } from "./deck.js";
 import { canPlayCard } from "./rules.js";
 
 let selectedCardIds = new Set();
@@ -18,6 +18,9 @@ function toggleSelection(cardId) {
 }
 
 function cardInnerHTML(card) {
+  if (card.isJoker) {
+    return `<div class="rank-top">JK</div><div class="suit-icon">🃏</div><div class="rank-bottom">JK</div>`;
+  }
   const label = rankLabel(card.rank);
   const icon = suitIcon(card.suit);
   return `<div class="rank-top">${label}</div><div class="suit-icon">${icon}</div><div class="rank-bottom">${label}</div>`;
@@ -25,7 +28,12 @@ function cardInnerHTML(card) {
 
 function buildCardEl(card, { small = false, selected = false, legal = false, disabled = false, onClick = null } = {}) {
   const el = document.createElement("div");
-  const classes = ["card", `suit-${card.suit}`];
+  const classes = ["card"];
+  if (card.isJoker) {
+    classes.push("joker");
+  } else {
+    classes.push(`suit-${card.suit}`);
+  }
   if (small) classes.push("small");
   if (selected) classes.push("selected");
   if (legal) classes.push("legal");
@@ -49,8 +57,8 @@ function buildFaceDownEl({ small = false, disabled = false, onClick = null } = {
 
 function requirementText(req) {
   if (req.type === "open") return "Any card can be played";
-  if (req.type === "sevenOrUnder") return "7 or lower required (2s and 10s always OK)";
-  return `${rankLabel(req.minRank)} or higher required (2s and 10s always OK)`;
+  if (req.type === "sevenOrUnder") return "7 or lower required (2s, 10s, and Jokers always OK)";
+  return `${rankLabel(req.minRank)} or higher required (2s, 10s, and Jokers always OK)`;
 }
 
 function ordinal(n) {
@@ -114,6 +122,9 @@ function renderHud(game) {
   const badge = document.getElementById("requirement-info");
   badge.textContent = requirementText(game.pileRequirement);
   badge.classList.toggle("restricted", game.pileRequirement.type === "sevenOrUnder");
+
+  const dirBadge = document.getElementById("direction-info");
+  dirBadge.textContent = game.direction === 1 ? "↻ Clockwise" : "↺ Reversed";
 }
 
 function renderOpponents(game) {
@@ -238,14 +249,22 @@ function renderPlayerZones(game, handlers) {
   document.getElementById("pickup-btn").disabled = !canPickUp;
 }
 
-export function sortHandByRank(game) {
-  game.players[0].hand.sort((a, b) => a.rank - b.rank || a.suit.localeCompare(b.suit));
+const SUIT_ORDER = ["hearts", "diamonds", "clubs", "spades"];
+
+// Jokers have no rank/suit to compare - sort them consistently to the end.
+function rankSortKey(card) {
+  return card.isJoker ? MAX_RANK + 1 : card.rank;
+}
+function suitSortKey(card) {
+  return card.isJoker ? SUIT_ORDER.length : SUIT_ORDER.indexOf(card.suit);
 }
 
-const SUIT_ORDER = ["hearts", "diamonds", "clubs", "spades"];
+export function sortHandByRank(game) {
+  game.players[0].hand.sort((a, b) => rankSortKey(a) - rankSortKey(b) || suitSortKey(a) - suitSortKey(b));
+}
+
 export function sortHandBySuit(game) {
-  game.players[0].hand.sort((a, b) =>
-    SUIT_ORDER.indexOf(a.suit) - SUIT_ORDER.indexOf(b.suit) || a.rank - b.rank);
+  game.players[0].hand.sort((a, b) => suitSortKey(a) - suitSortKey(b) || rankSortKey(a) - rankSortKey(b));
 }
 
 function handleCardClick(game, zone, cardId) {

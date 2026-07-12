@@ -1,15 +1,16 @@
-// Pile legality and special-card effects for Shed.
+// Pile legality and special-card effects for Palace.
 //
 // The pile has a "requirement" that determines what can legally be played on
 // top of it next:
-//   - open:          anything goes (start of pile, or right after a 2/burn)
-//   - sevenOrUnder:  only rank <=7 (or a 2/10, which are always legal)
+//   - open:          anything goes (start of pile, or right after a 2/Joker/burn)
+//   - sevenOrUnder:  only rank <=7 (or a 2/10/Joker, which are always legal)
 //   - rank:minRank:  rank must be >= minRank
 //
-// 2 and 10 are always legal regardless of the current requirement - a 2
-// resets the pile to open, a 10 burns it outright.
+// 2, 10, and Joker are always legal regardless of the current requirement -
+// a 2 resets the pile to open, a 10 burns it outright, and a Joker resets
+// the pile to open and reverses play direction (see game.js).
 
-import { isSpecial } from "./deck.js";
+import { isSpecial, JOKER_RANK } from "./deck.js";
 
 export function canPlayCard(card, requirement) {
   if (isSpecial(card)) return true;
@@ -46,7 +47,7 @@ export function topRunLength(pile) {
 
 /** The requirement that applies after `playedCards` (all same rank) land on top of the pile. */
 export function nextRequirement(playedRank) {
-  if (playedRank === 2) return { type: "open" };
+  if (playedRank === 2 || playedRank === JOKER_RANK) return { type: "open" };
   if (playedRank === 7) return { type: "sevenOrUnder" };
   return { type: "rank", minRank: playedRank };
 }

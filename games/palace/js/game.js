@@ -1,5 +1,7 @@
-import { createDeck, shuffle, cardLabel } from "./deck.js";
+import { createDeck, shuffle, cardLabel, JOKER_RANK } from "./deck.js";
 import { canPlayCard, hasLegalPlay, nextRequirement, burnsFromPlay } from "./rules.js";
+
+const STALEMATE_REPEAT_THRESHOLD = 20;
 
 const BOT_NAMES = [
   "Ada", "Beau", "Casey", "Dana", "Ezra", "Finch", "Gwen", "Huxley",
@@ -36,8 +38,10 @@ export class Game {
     this.phase = "swap"; // "swap" -> "playing" -> "gameOver"
     this.pile = [];
     this.pileRequirement = { type: "open" };
+    this.direction = 1; // 1 = clockwise (seat order), -1 = reversed by a Joker
     this.listeners = [];
     this.currentPlayerIndex = 0;
+    this.seenStates = new Map();
     this.deal();
   }
 
@@ -167,7 +171,51 @@ export class Game {
   }
 
   stepFrom(startIdx, steps) {
-    return (startIdx + steps) % this.numPlayers;
+    const n = this.numPlayers;
+    return (((startIdx + this.direction * steps) % n) + n) % n;
+  }
+
+  // With pickups now forced-only (never voluntary), some rare deals leave
+  // every remaining player with zero real choices at every turn, so the
+  // exact game state can repeat forever. Card identities are stable for the
+  // life of a game, so this hashes every zone's card IDs plus whose turn it
+  // is, pile, requirement, and direction. A single repeat isn't proof by
+  // itself - the bot's weighted-random pick at that state could still
+  // diverge next time - so advanceTurn only calls it stuck once the exact
+  // same state has recurred several times (see STALEMATE_REPEAT_THRESHOLD),
+  // which a merely-coincidental revisit is extremely unlikely to survive.
+  stateFingerprint() {
+    const perPlayer = this.players
+      .map((p) => [
+        p.hand.map((c) => c.id).sort().join(","),
+        p.faceUp.map((c) => c.id).sort().join(","),
+        p.faceDown.map((c) => c.id).sort().join(","),
+      ].join("|"))
+      .join(";");
+    return [
+      this.currentPlayerIndex,
+      this.direction,
+      this.drawPile.length,
+      JSON.stringify(this.pileRequirement),
+      this.pile.map((c) => c.id).join(","),
+      perPlayer,
+    ].join("::");
+  }
+
+  forceStalemateEnd() {
+    const remaining = this.players.filter((p) => !p.finished);
+    remaining.sort((a, b) => {
+      const totalA = a.hand.length + a.faceUp.length + a.faceDown.length;
+      const totalB = b.hand.length + b.faceUp.length + b.faceDown.length;
+      return totalA - totalB;
+    });
+    remaining.forEach((p, i) => {
+      p.finished = true;
+      p.finishRank = i + 1;
+    });
+    this.phase = "gameOver";
+    this.message = "Play looped with no one able to progress - ending by fewest cards held.";
+    this.emit();
   }
 
   advanceTurn(actingIdx, { burned, skip }) {
@@ -176,6 +224,13 @@ export class Game {
     } else {
       this.currentPlayerIndex = this.stepFrom(actingIdx, 1 + skip);
     }
+    const fp = this.stateFingerprint();
+    const seenCount = (this.seenStates.get(fp) || 0) + 1;
+    if (seenCount >= STALEMATE_REPEAT_THRESHOLD) {
+      this.forceStalemateEnd();
+      return;
+    }
+    this.seenStates.set(fp, seenCount);
     this.emit();
   }
 
@@ -189,15 +244,22 @@ export class Game {
       this.pileRequirement = nextRequirement(rank);
     }
 
+    const reversed = rank === JOKER_RANK;
+    if (reversed) this.direction *= -1;
+
     if (this.checkFinished(p)) {
       this.winGame(p);
       return;
     }
 
     const skip = !burned && rank === 8 ? count : 0;
-    this.message = burned
-      ? `${p.name} burned the pile and ${p.isHuman ? "go" : "goes"} again!`
-      : `${p.name} played.`;
+    if (burned) {
+      this.message = p.isHuman ? "You burned the pile and go again!" : `${p.name} burned the pile and goes again!`;
+    } else if (reversed) {
+      this.message = p.isHuman ? "You played a Joker - play reverses!" : `${p.name} played a Joker - play reverses!`;
+    } else {
+      this.message = `${p.name} played.`;
+    }
     this.advanceTurn(playerIdx, { burned, skip });
   }
 
