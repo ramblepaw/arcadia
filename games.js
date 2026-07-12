@@ -10,4 +10,12 @@ export const GAMES = [
     accent: "#e8c14a",
     scoreDirection: "asc",
   },
+  {
+    slug: "shed",
+    title: "Shed",
+    tagline: "aka Shithead. Empty your hand first, or get stuck with the pile.",
+    path: "games/shed/index.html",
+    accent: "#c0392b",
+    scoreDirection: "asc",
+  },
 ];
