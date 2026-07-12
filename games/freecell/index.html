@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreeCell</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="start-screen" class="screen">
+  <div class="start-card">
+    <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
+    <h1>FreeCell</h1>
+    <p class="tagline">Every card face-up. No luck left to blame but yours.</p>
+    <button id="start-btn">Deal Me In</button>
+    <button id="rules-btn" class="link-btn">How to Play</button>
+  </div>
+</div>
+
+<div id="game-screen" class="screen hidden">
+  <header id="hud">
+    <div class="hud-left">
+      <div id="status-info">Waiting...</div>
+      <div id="remaining-badge" class="requirement-badge"></div>
+      <div id="moves-badge" class="requirement-badge"></div>
+    </div>
+    <div class="hud-right">
+      <button id="main-menu-btn">Main Menu</button>
+    </div>
+  </header>
+
+  <div class="table-top">
+    <div id="free-cells" class="cell-row"></div>
+    <div id="foundations" class="cell-row"></div>
+  </div>
+
+  <div class="table-mid">
+    <div id="tableau" class="tableau"></div>
+  </div>
+
+  <div id="player-area" class="player-area">
+    <div id="player-status" class="player-status"></div>
+  </div>
+</div>
+
+<div id="rules-modal" class="modal hidden">
+  <div class="modal-box rules-box">
+    <h2>How to Play FreeCell</h2>
+
+    <h3>Goal</h3>
+    <p>Move all 52 cards onto the four foundations, one pile per suit, built up from Ace to King.</p>
+
+    <h3>Setup</h3>
+    <p>All 52 cards are dealt face-up into 8 tableau columns (the first four columns get 7 cards, the last four get 6). There is no hidden information - every card is visible from the start. Above the tableau are 4 empty free cells and 4 empty foundations.</p>
+
+    <h3>Moving Cards</h3>
+    <p>Click a card to select it, then click where you want it to go. Clicking a card selects the longest valid run starting there - a run is a sequence of cards descending in rank with alternating colors (red on black, black on red). Clicking the selected card again deselects it.</p>
+    <p>A tableau column accepts a run if it's empty, or if its top card is one rank higher than the bottom card of the run and the opposite color. Any single card can go into an empty free cell. A single card can go onto its foundation if it's the next rank that foundation needs. Cards sitting in a free cell can be played to the tableau or a foundation just like a tableau card.</p>
+
+    <h3>Supermoves</h3>
+    <p>You can move more than one card at a time as a "supermove," which the game simulates as if you moved each card through your empty free cells and empty columns one at a time. The more free cells and empty columns you have open, the more cards you can move at once: capacity is <code>(1 + free cells open) &times; 2<sup>empty columns open</sup></code>. If you try to move a run bigger than your current capacity allows, the move is rejected and the game tells you why.</p>
+
+    <h3>Winning</h3>
+    <p>Get all 52 cards onto the foundations. There's no way to "lose" FreeCell outright - if you get stuck, head back to the Main Menu and deal a fresh game.</p>
+
+    <button id="close-rules-btn">Close</button>
+  </div>
+</div>
+
+<div id="game-over-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="game-over-title">Game Over</h2>
+    <p id="game-over-detail"></p>
+    <div class="game-over-actions">
+      <button id="play-again-btn">Play Again</button>
+      <a href="../../index.html" class="btn secondary">Main Menu</a>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

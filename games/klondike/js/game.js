@@ -1,0 +1,278 @@
+import { createDeck, shuffle, SUITS } from "./deck.js";
+import {
+  canPlaceOnColumn,
+  canPlaceOnFoundation,
+  getMovableSequence,
+  hasWon,
+  countOffFoundation,
+} from "./rules.js";
+
+export const NUM_COLUMNS = 7;
+export const TOTAL_CARDS = 52;
+
+export class Game {
+  constructor() {
+    this.listeners = [];
+    this.deal();
+  }
+
+  subscribe(fn) {
+    this.listeners.push(fn);
+  }
+
+  emit() {
+    this.listeners.forEach((fn) => fn(this));
+  }
+
+  deal() {
+    const deck = shuffle(createDeck());
+    let idx = 0;
+    this.tableau = [];
+    for (let col = 0; col < NUM_COLUMNS; col++) {
+      const pile = [];
+      for (let n = 0; n <= col; n++) {
+        const card = deck[idx++];
+        card.faceUp = n === col; // only the last dealt card starts face up
+        pile.push(card);
+      }
+      this.tableau.push(pile);
+    }
+    this.stock = deck.slice(idx);
+    this.waste = [];
+    this.foundations = {};
+    for (const suit of SUITS) this.foundations[suit] = [];
+
+    this.selection = null; // { type: "waste" } | { type: "tableau", col, index }
+    this.moves = 0;
+    this.redeals = 0;
+    this.phase = "playing"; // "playing" -> "gameOver"
+    this.outcome = null; // "win" (this game never reports a loss state)
+    this.message = "Draw from the stock, or move a card to get started.";
+    this.emit();
+  }
+
+  get isGameOver() {
+    return this.phase === "gameOver";
+  }
+
+  // ---------- read helpers ----------
+
+  topOfWaste() {
+    return this.waste.length ? this.waste[this.waste.length - 1] : null;
+  }
+
+  topOfFoundation(suit) {
+    const pile = this.foundations[suit];
+    return pile.length ? pile[pile.length - 1] : null;
+  }
+
+  remaining() {
+    return countOffFoundation(this.tableau, this.stock, this.waste);
+  }
+
+  foundationCount() {
+    return TOTAL_CARDS - this.remaining();
+  }
+
+  isSelected(loc) {
+    if (!this.selection) return false;
+    if (loc.type !== this.selection.type) return false;
+    if (loc.type === "waste") return true;
+    return loc.col === this.selection.col && loc.index === this.selection.index;
+  }
+
+  /** The sequence of cards (1 or more) that the current selection represents, or null. */
+  selectedSequence() {
+    if (!this.selection) return null;
+    if (this.selection.type === "waste") {
+      const top = this.topOfWaste();
+      return top ? [top] : null;
+    }
+    const { col, index } = this.selection;
+    return getMovableSequence(this.tableau[col], index);
+  }
+
+  canDropOnTableau(destCol) {
+    const seq = this.selectedSequence();
+    if (!seq) return false;
+    if (this.selection.type === "tableau" && this.selection.col === destCol) return false;
+    return canPlaceOnColumn(this.tableau[destCol], seq[0]);
+  }
+
+  canDropOnFoundation(suit) {
+    const seq = this.selectedSequence();
+    if (!seq || seq.length !== 1) return false;
+    return canPlaceOnFoundation(this.foundations[suit], seq[0]);
+  }
+
+  // ---------- selection ----------
+
+  selectWaste() {
+    if (this.phase !== "playing" || this.waste.length === 0) return;
+    if (this.selection && this.selection.type === "waste") {
+      this.selection = null;
+    } else {
+      this.selection = { type: "waste" };
+    }
+    this.message = "";
+    this.emit();
+  }
+
+  selectTableau(col, index) {
+    if (this.phase !== "playing") return;
+    const pile = this.tableau[col];
+    const card = pile[index];
+    if (!card) return;
+
+    // Clicking the current selection again deselects it.
+    if (this.isSelected({ type: "tableau", col, index })) {
+      this.selection = null;
+      this.message = "";
+      this.emit();
+      return;
+    }
+
+    // If a selection exists and this column is a legal destination, drop here.
+    if (this.selection && index === pile.length - 1 && this.canDropOnTableau(col)) {
+      this.moveSelectionToTableau(col);
+      return;
+    }
+
+    if (!card.faceUp) return; // face-down, not selectable and not a valid drop target
+
+    this.selection = { type: "tableau", col, index };
+    this.message = "";
+    this.emit();
+  }
+
+  clickEmptyColumn(col) {
+    if (this.phase !== "playing") return;
+    if (this.selection && this.canDropOnTableau(col)) {
+      this.moveSelectionToTableau(col);
+      return;
+    }
+  }
+
+  clickFoundation(suit) {
+    if (this.phase !== "playing") return;
+    if (this.selection && this.canDropOnFoundation(suit)) {
+      this.moveSelectionToFoundation(suit);
+    }
+  }
+
+  // ---------- moves ----------
+
+  moveSelectionToTableau(destCol) {
+    if (!this.selection || !this.canDropOnTableau(destCol)) return false;
+    if (this.selection.type === "waste") {
+      const card = this.waste.pop();
+      this.tableau[destCol].push(card);
+    } else {
+      const { col, index } = this.selection;
+      const src = this.tableau[col];
+      const seq = src.splice(index);
+      this.tableau[destCol].push(...seq);
+      this.flipNewTop(col);
+    }
+    this.selection = null;
+    this.moves++;
+    this.message = "";
+    this.checkOutcome();
+    if (this.phase === "playing") this.emit();
+    return true;
+  }
+
+  moveSelectionToFoundation(suit) {
+    if (!this.selection || !this.canDropOnFoundation(suit)) return false;
+    if (this.selection.type === "waste") {
+      const card = this.waste.pop();
+      this.foundations[suit].push(card);
+    } else {
+      const { col } = this.selection;
+      const src = this.tableau[col];
+      const card = src.pop();
+      this.foundations[suit].push(card);
+      this.flipNewTop(col);
+    }
+    this.selection = null;
+    this.moves++;
+    this.message = "";
+    this.checkOutcome();
+    if (this.phase === "playing") this.emit();
+    return true;
+  }
+
+  /** Double-click helper: send the top card of waste straight to its foundation, if legal. */
+  autoMoveWasteToFoundation() {
+    if (this.phase !== "playing") return false;
+    const card = this.topOfWaste();
+    if (!card || !canPlaceOnFoundation(this.foundations[card.suit], card)) return false;
+    this.waste.pop();
+    this.foundations[card.suit].push(card);
+    this.selection = null;
+    this.moves++;
+    this.message = "";
+    this.checkOutcome();
+    if (this.phase === "playing") this.emit();
+    return true;
+  }
+
+  /** Double-click helper: send the top card of a tableau column straight to its foundation. */
+  autoMoveTableauToFoundation(col) {
+    if (this.phase !== "playing") return false;
+    const pile = this.tableau[col];
+    const card = pile[pile.length - 1];
+    if (!card || !card.faceUp) return false;
+    if (!canPlaceOnFoundation(this.foundations[card.suit], card)) return false;
+    pile.pop();
+    this.foundations[card.suit].push(card);
+    this.flipNewTop(col);
+    this.selection = null;
+    this.moves++;
+    this.message = "";
+    this.checkOutcome();
+    if (this.phase === "playing") this.emit();
+    return true;
+  }
+
+  /** Flip the new top card of a tableau column face up, if it was just exposed. */
+  flipNewTop(col) {
+    const pile = this.tableau[col];
+    if (pile.length === 0) return;
+    const top = pile[pile.length - 1];
+    if (!top.faceUp) top.faceUp = true;
+  }
+
+  draw() {
+    if (this.phase !== "playing") return false;
+    if (this.stock.length > 0) {
+      const card = this.stock.pop();
+      card.faceUp = true;
+      this.waste.push(card);
+    } else if (this.waste.length > 0) {
+      // Recycle waste back into stock, preserving draw order.
+      while (this.waste.length) {
+        const card = this.waste.pop();
+        card.faceUp = false;
+        this.stock.push(card);
+      }
+      this.redeals++;
+    } else {
+      return false;
+    }
+    this.selection = null;
+    this.moves++;
+    this.message = "";
+    this.emit();
+    return true;
+  }
+
+  checkOutcome() {
+    if (hasWon(this.foundations)) {
+      this.phase = "gameOver";
+      this.outcome = "win";
+      this.message = "All four foundations complete - you win!";
+      this.emit();
+    }
+  }
+}

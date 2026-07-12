@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klondike</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="start-screen" class="screen">
+  <div class="start-card">
+    <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
+    <h1>Klondike</h1>
+    <p class="tagline">Build the foundations, Ace to King, one careful move at a time.</p>
+    <button id="start-btn">Deal Me In</button>
+    <button id="rules-btn" class="link-btn">How to Play</button>
+  </div>
+</div>
+
+<div id="game-screen" class="screen hidden">
+  <header id="hud">
+    <div class="hud-left">
+      <div id="status-info">Waiting...</div>
+      <div id="remaining-badge" class="requirement-badge"></div>
+    </div>
+    <div class="hud-right">
+      <button id="main-menu-btn">Main Menu</button>
+    </div>
+  </header>
+
+  <div class="table-mid">
+    <div class="top-row">
+      <div class="piles-left">
+        <div class="pile-wrap">
+          <div id="stock-pile" class="pile"></div>
+          <div class="pile-label">Stock</div>
+        </div>
+        <div class="pile-wrap">
+          <div id="waste-pile" class="pile"></div>
+          <div class="pile-label">Waste</div>
+        </div>
+      </div>
+      <div class="foundations">
+        <div class="pile-wrap">
+          <div id="foundation-hearts" class="pile"></div>
+        </div>
+        <div class="pile-wrap">
+          <div id="foundation-diamonds" class="pile"></div>
+        </div>
+        <div class="pile-wrap">
+          <div id="foundation-clubs" class="pile"></div>
+        </div>
+        <div class="pile-wrap">
+          <div id="foundation-spades" class="pile"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tableau" class="tableau"></div>
+  </div>
+
+  <div id="player-area" class="player-area">
+    <div id="player-status" class="player-status"></div>
+  </div>
+</div>
+
+<div id="rules-modal" class="modal hidden">
+  <div class="modal-box rules-box">
+    <h2>How to Play Klondike</h2>
+
+    <h3>Goal</h3>
+    <p>Move all 52 cards onto the four foundations, sorted by suit from Ace up to King.</p>
+
+    <h3>Setup</h3>
+    <p>The tableau has 7 columns; column <em>N</em> (counting from 1) gets <em>N</em> cards, with only the top card of each column dealt face up. The other 24 cards form the stock.</p>
+
+    <h3>Your Turn</h3>
+    <p>Click a card to select it, then click where it should go - a highlighted pile or column marks a legal destination. Click the same card again to deselect it.</p>
+    <p>Tableau columns build downward in rank with alternating colors (red on black, black on red). Only a King may start an empty column. You can move a face-up card together with the valid run stacked on top of it.</p>
+    <p>Foundations build upward by suit, starting with the Ace.</p>
+    <p>Click the stock to draw one card onto the waste pile. Only the top card of the waste is playable. Once the stock is empty, click it again to recycle the waste back into the stock - you can redeal as many times as you like.</p>
+    <p>Double-click a waste or tableau card to send it straight to its foundation, if that move is legal.</p>
+
+    <h3>Winning</h3>
+    <p>Get all 52 cards onto the foundations. There's no forced loss here - if you get stuck, just head back to the Main Menu and deal a new hand.</p>
+
+    <button id="close-rules-btn">Close</button>
+  </div>
+</div>
+
+<div id="game-over-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="game-over-title">Game Over</h2>
+    <p id="game-over-detail"></p>
+    <div class="game-over-actions">
+      <button id="play-again-btn">Play Again</button>
+      <a href="../../index.html" class="btn secondary">Main Menu</a>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
