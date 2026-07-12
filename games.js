@@ -20,6 +20,7 @@ export const GAMES = [
     path: "games/palace/index.html",
     accent: "#c0392b",
     scoreDirection: "asc",
+    leaderboardMetric: "winRate",
   },
   {
     slug: "pyramid",
