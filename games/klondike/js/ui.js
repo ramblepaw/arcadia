@@ -66,20 +66,27 @@ function renderStock(game, handlers) {
 function renderWaste(game, handlers) {
   const wasteEl = document.getElementById("waste-pile");
   wasteEl.innerHTML = "";
-  const top = game.topOfWaste();
-  if (!top) {
+  if (game.waste.length === 0) {
     const slot = document.createElement("div");
     slot.className = "card empty-slot";
     wasteEl.appendChild(slot);
     return;
   }
   const selected = game.isSelected({ type: "waste" });
-  const el = buildCardEl(top, {
-    selected,
-    onClick: () => handlers.onClickWaste(),
-    onDblClick: () => handlers.onDblClickWaste(),
+  const fan = game.waste.slice(-3); // up to 3 most recently drawn, oldest first
+  fan.forEach((card, i) => {
+    const isTop = i === fan.length - 1;
+    const el = buildCardEl(card, {
+      selected: isTop && selected,
+      onClick: isTop ? () => handlers.onClickWaste() : null,
+      onDblClick: isTop ? () => handlers.onDblClickWaste() : null,
+    });
+    el.style.position = "absolute";
+    el.style.left = `${i * 16}px`;
+    el.style.zIndex = String(i);
+    if (!isTop) el.classList.add("waste-behind");
+    wasteEl.appendChild(el);
   });
-  wasteEl.appendChild(el);
 }
 
 function renderFoundations(game, handlers) {

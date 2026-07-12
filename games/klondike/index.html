@@ -13,6 +13,13 @@
     <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
     <h1>Klondike</h1>
     <p class="tagline">Build the foundations, Ace to King, one careful move at a time.</p>
+
+    <fieldset class="draw-count-picker">
+      <legend>Draw</legend>
+      <label><input type="radio" name="draw-count" value="1" checked> Draw 1 (easier)</label>
+      <label><input type="radio" name="draw-count" value="3"> Draw 3 (classic)</label>
+    </fieldset>
+
     <button id="start-btn">Deal Me In</button>
     <button id="rules-btn" class="link-btn">How to Play</button>
   </div>
@@ -79,7 +86,7 @@
     <p>Click a card to select it, then click where it should go - a highlighted pile or column marks a legal destination. Click the same card again to deselect it.</p>
     <p>Tableau columns build downward in rank with alternating colors (red on black, black on red). Only a King may start an empty column. You can move a face-up card together with the valid run stacked on top of it.</p>
     <p>Foundations build upward by suit, starting with the Ace.</p>
-    <p>Click the stock to draw one card onto the waste pile. Only the top card of the waste is playable. Once the stock is empty, click it again to recycle the waste back into the stock - you can redeal as many times as you like.</p>
+    <p>Click the stock to draw one or three cards onto the waste pile (your choice, set before dealing). Only the top card of the waste is playable. Once the stock is empty, click it again to recycle the waste back into the stock - you can redeal as many times as you like.</p>
     <p>Double-click a waste or tableau card to send it straight to its foundation, if that move is legal.</p>
 
     <h3>Winning</h3>

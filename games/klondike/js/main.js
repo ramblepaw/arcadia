@@ -21,6 +21,7 @@ async function reportGameResult(finishedGame) {
         movesUsed: finishedGame.moves,
         foundationCards: finishedGame.foundationCount(),
         redealsUsed: finishedGame.redeals,
+        drawCount: finishedGame.drawCount,
       },
     });
   } catch (err) {
@@ -48,8 +49,13 @@ function render() {
   }
 }
 
+function getSelectedDrawCount() {
+  const checked = document.querySelector('input[name="draw-count"]:checked');
+  return checked ? Number(checked.value) : 1;
+}
+
 function startGame() {
-  game = new Game();
+  game = new Game(getSelectedDrawCount());
   game.subscribe(render);
   document.getElementById("start-screen").classList.add("hidden");
   document.getElementById("game-over-modal").classList.add("hidden");

@@ -13,8 +13,8 @@
   --danger: #c0392b;
   --ok: #2e9e5b;
   --hearts: #c0392b;
-  --clubs: #2c2c2c;
-  --diamonds: #1f6fb2;
+  --clubs: #1a1a1a;
+  --diamonds: #c0392b;
   --spades: #1a1a1a;
   --stack-down: 14px;
   --stack-up: 24px;
@@ -96,6 +96,32 @@ html, body {
   color: var(--gold);
   transform: none;
   box-shadow: none;
+}
+
+.draw-count-picker {
+  border: 1px solid var(--panel-light);
+  border-radius: 10px;
+  padding: 12px 16px 14px;
+  margin: 0 0 20px;
+  text-align: left;
+}
+.draw-count-picker legend {
+  padding: 0 6px;
+  color: var(--text-dim);
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.draw-count-picker label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.95em;
+  cursor: pointer;
+}
+.draw-count-picker input {
+  accent-color: var(--gold);
 }
 
 /* ---------- Game screen layout ---------- */
@@ -303,6 +329,9 @@ html, body {
 .foundation-suit-icon.suit-clubs { color: var(--clubs); }
 .foundation-suit-icon.suit-diamonds { color: var(--diamonds); }
 .foundation-suit-icon.suit-spades { color: var(--spades); }
+
+.waste-behind { cursor: default; opacity: 0.9; }
+.waste-behind:hover { transform: none; box-shadow: 0 3px 6px rgba(0,0,0,0.35); }
 
 .recycle-slot { cursor: pointer; border-color: rgba(255,255,255,0.35); }
 .recycle-icon {

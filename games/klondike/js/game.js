@@ -11,8 +11,9 @@ export const NUM_COLUMNS = 7;
 export const TOTAL_CARDS = 52;
 
 export class Game {
-  constructor() {
+  constructor(drawCount = 1) {
     this.listeners = [];
+    this.drawCount = drawCount === 3 ? 3 : 1;
     this.deal();
   }
 
@@ -246,9 +247,12 @@ export class Game {
   draw() {
     if (this.phase !== "playing") return false;
     if (this.stock.length > 0) {
-      const card = this.stock.pop();
-      card.faceUp = true;
-      this.waste.push(card);
+      const n = Math.min(this.drawCount, this.stock.length);
+      for (let i = 0; i < n; i++) {
+        const card = this.stock.pop();
+        card.faceUp = true;
+        this.waste.push(card);
+      }
     } else if (this.waste.length > 0) {
       // Recycle waste back into stock, preserving draw order.
       while (this.waste.length) {
