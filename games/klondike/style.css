@@ -155,7 +155,7 @@ html, body {
 
 .hud-right { display: flex; gap: 8px; }
 
-#main-menu-btn {
+#main-menu-btn, #undo-btn {
   background: var(--panel-light);
   color: var(--text);
   border: 1px solid rgba(255,255,255,0.2);
@@ -163,7 +163,8 @@ html, body {
   border-radius: 8px;
   cursor: pointer;
 }
-#main-menu-btn:hover { background: rgba(255,255,255,0.18); }
+#main-menu-btn:hover, #undo-btn:hover:not(:disabled) { background: rgba(255,255,255,0.18); }
+#undo-btn:disabled { opacity: 0.4; cursor: default; }
 
 .table-mid {
   display: flex;

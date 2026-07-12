@@ -46,10 +46,42 @@ export class Game {
     this.selection = null; // { type: "waste" } | { type: "tableau", col, index }
     this.moves = 0;
     this.redeals = 0;
+    this.score = 0;
+    this.history = [];
     this.phase = "playing"; // "playing" -> "gameOver"
     this.outcome = null; // "win" (this game never reports a loss state)
     this.message = "Draw from the stock, or move a card to get started.";
     this.emit();
+  }
+
+  get canUndo() {
+    return this.phase === "playing" && this.history.length > 0;
+  }
+
+  /** Snapshot the mutable state before a move, for undo(). */
+  pushHistory() {
+    this.history.push(
+      structuredClone({
+        tableau: this.tableau,
+        stock: this.stock,
+        waste: this.waste,
+        foundations: this.foundations,
+        selection: this.selection,
+        moves: this.moves,
+        redeals: this.redeals,
+        score: this.score,
+        phase: this.phase,
+        outcome: this.outcome,
+        message: this.message,
+      })
+    );
+  }
+
+  undo() {
+    if (!this.canUndo) return false;
+    Object.assign(this, this.history.pop());
+    this.emit();
+    return true;
   }
 
   get isGameOver() {
@@ -165,15 +197,17 @@ export class Game {
 
   moveSelectionToTableau(destCol) {
     if (!this.selection || !this.canDropOnTableau(destCol)) return false;
+    this.pushHistory();
     if (this.selection.type === "waste") {
       const card = this.waste.pop();
       this.tableau[destCol].push(card);
+      this.score += 5; // waste -> tableau
     } else {
       const { col, index } = this.selection;
       const src = this.tableau[col];
       const seq = src.splice(index);
       this.tableau[destCol].push(...seq);
-      this.flipNewTop(col);
+      if (this.flipNewTop(col)) this.score += 5;
     }
     this.selection = null;
     this.moves++;
@@ -185,6 +219,7 @@ export class Game {
 
   moveSelectionToFoundation(suit) {
     if (!this.selection || !this.canDropOnFoundation(suit)) return false;
+    this.pushHistory();
     if (this.selection.type === "waste") {
       const card = this.waste.pop();
       this.foundations[suit].push(card);
@@ -193,8 +228,9 @@ export class Game {
       const src = this.tableau[col];
       const card = src.pop();
       this.foundations[suit].push(card);
-      this.flipNewTop(col);
+      if (this.flipNewTop(col)) this.score += 5;
     }
+    this.score += 10; // card reached a foundation
     this.selection = null;
     this.moves++;
     this.message = "";
@@ -208,8 +244,10 @@ export class Game {
     if (this.phase !== "playing") return false;
     const card = this.topOfWaste();
     if (!card || !canPlaceOnFoundation(this.foundations[card.suit], card)) return false;
+    this.pushHistory();
     this.waste.pop();
     this.foundations[card.suit].push(card);
+    this.score += 10;
     this.selection = null;
     this.moves++;
     this.message = "";
@@ -225,9 +263,11 @@ export class Game {
     const card = pile[pile.length - 1];
     if (!card || !card.faceUp) return false;
     if (!canPlaceOnFoundation(this.foundations[card.suit], card)) return false;
+    this.pushHistory();
     pile.pop();
     this.foundations[card.suit].push(card);
-    this.flipNewTop(col);
+    this.score += 10;
+    if (this.flipNewTop(col)) this.score += 5;
     this.selection = null;
     this.moves++;
     this.message = "";
@@ -236,16 +276,20 @@ export class Game {
     return true;
   }
 
-  /** Flip the new top card of a tableau column face up, if it was just exposed. */
+  /** Flip the new top card of a tableau column face up, if it was just exposed. Returns whether it flipped. */
   flipNewTop(col) {
     const pile = this.tableau[col];
-    if (pile.length === 0) return;
+    if (pile.length === 0) return false;
     const top = pile[pile.length - 1];
-    if (!top.faceUp) top.faceUp = true;
+    if (top.faceUp) return false;
+    top.faceUp = true;
+    return true;
   }
 
   draw() {
     if (this.phase !== "playing") return false;
+    if (this.stock.length === 0 && this.waste.length === 0) return false;
+    this.pushHistory();
     if (this.stock.length > 0) {
       const n = Math.min(this.drawCount, this.stock.length);
       for (let i = 0; i < n; i++) {
@@ -253,7 +297,7 @@ export class Game {
         card.faceUp = true;
         this.waste.push(card);
       }
-    } else if (this.waste.length > 0) {
+    } else {
       // Recycle waste back into stock, preserving draw order.
       while (this.waste.length) {
         const card = this.waste.pop();
@@ -261,8 +305,6 @@ export class Game {
         this.stock.push(card);
       }
       this.redeals++;
-    } else {
-      return false;
     }
     this.selection = null;
     this.moves++;

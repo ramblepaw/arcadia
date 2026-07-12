@@ -26,6 +26,8 @@ function renderHud(game) {
   }
   document.getElementById("remaining-badge").textContent = `${game.score()} left`;
   document.getElementById("moves-badge").textContent = `${game.moves} moves`;
+  document.getElementById("score-badge").textContent = `Score: ${game.points}`;
+  document.getElementById("undo-btn").disabled = !game.canUndo;
   document.getElementById("player-status").textContent = game.message || "";
 }
 
@@ -100,6 +102,6 @@ export function renderAll(game, handlers) {
 export function showGameOverModal(game) {
   document.getElementById("game-over-title").textContent = "You Win!";
   document.getElementById("game-over-detail").textContent =
-    `All ${TOTAL_CARDS} cards made it to the foundations in ${game.moves} moves.`;
+    `All ${TOTAL_CARDS} cards made it to the foundations in ${game.moves} moves, scoring ${game.points} points.`;
   document.getElementById("game-over-modal").classList.remove("hidden");
 }

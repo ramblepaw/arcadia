@@ -31,10 +31,40 @@ export class Game {
     this.foundations = { hearts: 0, diamonds: 0, clubs: 0, spades: 0 };
     this.selection = null; // { type: "tableau", col, startIndex } | { type: "freecell", cell }
     this.moves = 0;
+    this.points = 0;
+    this.history = [];
     this.phase = "playing"; // "playing" -> "gameOver"
     this.outcome = null; // "win" | null (FreeCell has no forced-loss state)
     this.message = "Click a card to select it, then click where it should go.";
     this.emit();
+  }
+
+  get canUndo() {
+    return this.phase === "playing" && this.history.length > 0;
+  }
+
+  /** Snapshot the mutable state before a move, for undo(). */
+  pushHistory() {
+    this.history.push(
+      structuredClone({
+        tableau: this.tableau,
+        freeCells: this.freeCells,
+        foundations: this.foundations,
+        selection: this.selection,
+        moves: this.moves,
+        points: this.points,
+        phase: this.phase,
+        outcome: this.outcome,
+        message: this.message,
+      })
+    );
+  }
+
+  undo() {
+    if (!this.canUndo) return false;
+    Object.assign(this, this.history.pop());
+    this.emit();
+    return true;
   }
 
   get isGameOver() {
@@ -150,6 +180,7 @@ export class Game {
       return;
     }
 
+    this.pushHistory();
     this.removeSelectedRunFromSource();
     destColumn.push(...run);
     this.moves++;
@@ -186,6 +217,7 @@ export class Game {
   attemptMoveToFreeCell(cellIndex) {
     const run = this.getSelectedRun();
     if (!run || run.length !== 1) return; // only single cards fit in a free cell
+    this.pushHistory();
     this.removeSelectedRunFromSource();
     this.freeCells[cellIndex] = run[0];
     this.moves++;
@@ -202,8 +234,10 @@ export class Game {
     const card = run[0];
     if (card.suit !== suit || !canPlaceOnFoundation(this.foundations, card)) return;
 
+    this.pushHistory();
     this.removeSelectedRunFromSource();
     this.foundations[suit] = card.rank;
+    this.points += 10;
     this.moves++;
     this.selection = null;
     this.message = "";

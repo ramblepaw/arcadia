@@ -12,15 +12,15 @@ async function reportGameResult(finishedGame) {
     const me = await getMe();
     if (!me) return; // guest - nothing to record
 
-    const remaining = finishedGame.remaining();
     await recordPlay({
       gameSlug: "spider",
-      score: remaining,
+      score: finishedGame.score,
       result: finishedGame.outcome,
       details: {
         movesUsed: finishedGame.moves,
         suitCount: finishedGame.suitCount,
         sequencesCompleted: finishedGame.sequencesCompleted,
+        cardsRemaining: finishedGame.remaining(),
       },
     });
   } catch (err) {
@@ -60,6 +60,10 @@ function startGame() {
 }
 
 document.getElementById("start-btn").addEventListener("click", startGame);
+
+document.getElementById("undo-btn").addEventListener("click", () => {
+  if (game) game.undo();
+});
 
 document.getElementById("rules-btn").addEventListener("click", () => {
   document.getElementById("rules-modal").classList.remove("hidden");

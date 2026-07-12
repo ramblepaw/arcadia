@@ -45,10 +45,40 @@ export class Game {
     this.selected = null; // { col, index } | null
     this.moves = 0;
     this.sequencesCompleted = 0;
+    this.score = 0;
+    this.history = [];
     this.phase = "playing"; // "playing" -> "gameOver"
     this.outcome = null; // "win" | null (Spider has no forced-loss state)
     this.message = "Build King-to-Ace runs of the same suit to clear them.";
     this.emit();
+  }
+
+  get canUndo() {
+    return this.phase === "playing" && this.history.length > 0;
+  }
+
+  /** Snapshot the mutable state before a move, for undo(). */
+  pushHistory() {
+    this.history.push(
+      structuredClone({
+        tableau: this.tableau,
+        stock: this.stock,
+        selected: this.selected,
+        moves: this.moves,
+        sequencesCompleted: this.sequencesCompleted,
+        score: this.score,
+        phase: this.phase,
+        outcome: this.outcome,
+        message: this.message,
+      })
+    );
+  }
+
+  undo() {
+    if (!this.canUndo) return false;
+    Object.assign(this, this.history.pop());
+    this.emit();
+    return true;
   }
 
   get isGameOver() {
@@ -78,6 +108,7 @@ export class Game {
 
   dealFromStock() {
     if (!this.canDeal()) return false;
+    this.pushHistory();
     for (let c = 0; c < TABLEAU_COLUMNS; c++) {
       const card = this.stock.pop();
       this.tableau[c].push({ card, faceUp: true });
@@ -144,12 +175,16 @@ export class Game {
       return false;
     }
 
+    this.pushHistory();
     const moving = fromColumn.splice(index);
     toColumn.push(...moving);
 
     if (fromColumn.length > 0) {
       const newTop = fromColumn[fromColumn.length - 1];
-      if (!newTop.faceUp) newTop.faceUp = true;
+      if (!newTop.faceUp) {
+        newTop.faceUp = true;
+        this.score += 5;
+      }
     }
 
     this.selected = null;
@@ -164,9 +199,13 @@ export class Game {
       const cleared = checkAndClearSequence(column);
       if (cleared) {
         this.sequencesCompleted++;
+        this.score += 100;
         if (column.length > 0) {
           const newTop = column[column.length - 1];
-          if (!newTop.faceUp) newTop.faceUp = true;
+          if (!newTop.faceUp) {
+            newTop.faceUp = true;
+            this.score += 5;
+          }
         }
       }
     }

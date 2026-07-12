@@ -32,6 +32,8 @@ function renderHud(game) {
     statusEl.textContent = "Click a card to select it, then click where it should go.";
   }
   document.getElementById("remaining-badge").textContent = `${game.remaining()} left`;
+  document.getElementById("score-badge").textContent = `Score: ${game.score}`;
+  document.getElementById("undo-btn").disabled = !game.canUndo;
   document.getElementById("player-status").textContent = game.message || "";
 }
 
@@ -166,7 +168,7 @@ export function renderAll(game, handlers) {
 export function showGameOverModal(game) {
   document.getElementById("game-over-title").textContent = "You Win!";
   document.getElementById("game-over-detail").textContent =
-    `All ${TOTAL_CARDS} cards made it to the foundations in ${game.moves} moves` +
+    `All ${TOTAL_CARDS} cards made it to the foundations in ${game.moves} moves, scoring ${game.score} points` +
     (game.redeals > 0 ? ` (with ${game.redeals} redeal${game.redeals === 1 ? "" : "s"}).` : ".");
   document.getElementById("game-over-modal").classList.remove("hidden");
 }

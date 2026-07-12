@@ -55,7 +55,7 @@ export const GAMES = [
     tagline: "Build the foundations, Ace to King, one careful move at a time.",
     path: "games/klondike/index.html",
     accent: "#2e9e5b",
-    scoreDirection: "asc",
+    scoreDirection: "desc",
     leaderboardMetric: "winRate",
   },
   {
@@ -64,7 +64,7 @@ export const GAMES = [
     tagline: "Build King-to-Ace runs of the same suit to clear the tableau.",
     path: "games/spider/index.html",
     accent: "#6b2d5c",
-    scoreDirection: "asc",
+    scoreDirection: "desc",
     leaderboardMetric: "winRate",
   },
   {
@@ -73,7 +73,7 @@ export const GAMES = [
     tagline: "Every card face-up. No luck left to blame but yours.",
     path: "games/freecell/index.html",
     accent: "#1f9e8f",
-    scoreDirection: "asc",
+    scoreDirection: "desc",
     leaderboardMetric: "winRate",
   },
 ];

@@ -32,6 +32,8 @@ function renderHud(game) {
     statusEl.textContent = "Click a card to select it, or deal from the stock.";
   }
   document.getElementById("sequences-badge").textContent = `${game.sequencesCompleted}/${TOTAL_SEQUENCES} sequences`;
+  document.getElementById("score-badge").textContent = `Score: ${game.score}`;
+  document.getElementById("undo-btn").disabled = !game.canUndo;
   document.getElementById("player-status").textContent = game.message || "";
 }
 
@@ -109,6 +111,6 @@ export function showGameOverModal(game) {
   const cleared = TOTAL_CARDS - game.remaining();
   document.getElementById("game-over-title").textContent = "You Win!";
   document.getElementById("game-over-detail").textContent =
-    `All 8 King-to-Ace sequences completed (${cleared} cards cleared) in ${game.moves} moves.`;
+    `All 8 King-to-Ace sequences completed (${cleared} cards cleared) in ${game.moves} moves, scoring ${game.score} points.`;
   document.getElementById("game-over-modal").classList.remove("hidden");
 }

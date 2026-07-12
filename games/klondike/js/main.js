@@ -12,16 +12,16 @@ async function reportGameResult(finishedGame) {
     const me = await getMe();
     if (!me) return; // guest - nothing to record
 
-    const remaining = finishedGame.remaining();
     await recordPlay({
       gameSlug: "klondike",
-      score: remaining,
+      score: finishedGame.score,
       result: "win",
       details: {
         movesUsed: finishedGame.moves,
         foundationCards: finishedGame.foundationCount(),
         redealsUsed: finishedGame.redeals,
         drawCount: finishedGame.drawCount,
+        cardsRemaining: finishedGame.remaining(),
       },
     });
   } catch (err) {
@@ -64,6 +64,10 @@ function startGame() {
 }
 
 document.getElementById("start-btn").addEventListener("click", startGame);
+
+document.getElementById("undo-btn").addEventListener("click", () => {
+  if (game) game.undo();
+});
 
 document.getElementById("rules-btn").addEventListener("click", () => {
   document.getElementById("rules-modal").classList.remove("hidden");

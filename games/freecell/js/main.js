@@ -12,10 +12,11 @@ async function reportGameResult(finishedGame) {
 
     await recordPlay({
       gameSlug: "freecell",
-      score: finishedGame.score(),
+      score: finishedGame.points,
       result: finishedGame.outcome,
       details: {
         movesUsed: finishedGame.moves,
+        cardsRemaining: finishedGame.score(),
       },
     });
   } catch (err) {
@@ -50,6 +51,10 @@ function startGame() {
 }
 
 document.getElementById("start-btn").addEventListener("click", startGame);
+
+document.getElementById("undo-btn").addEventListener("click", () => {
+  if (game) game.undo();
+});
 
 document.getElementById("rules-btn").addEventListener("click", () => {
   document.getElementById("rules-modal").classList.remove("hidden");
