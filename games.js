@@ -23,7 +23,7 @@ export const GAMES = [
     title: "Pyramid",
     tagline: "Clear the pyramid, one rank up or down at a time.",
     path: "games/pyramid/index.html",
-    accent: "#d9a441",
+    accent: "#3d6fb5",
     scoreDirection: "asc",
   },
 ];
