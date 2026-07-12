@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pyramid</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="start-screen" class="screen">
+  <div class="start-card">
+    <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
+    <h1>Pyramid</h1>
+    <p class="tagline">Clear the pyramid by matching the guide card, one rank at a time.</p>
+    <button id="start-btn">Deal Me In</button>
+    <button id="rules-btn" class="link-btn">How to Play</button>
+  </div>
+</div>
+
+<div id="game-screen" class="screen hidden">
+  <header id="hud">
+    <div class="hud-left">
+      <div id="status-info">Waiting...</div>
+      <div id="remaining-badge" class="requirement-badge"></div>
+    </div>
+    <div class="hud-right">
+      <button id="main-menu-btn">Main Menu</button>
+    </div>
+  </header>
+
+  <div class="table-mid">
+    <div id="pyramid" class="pyramid"></div>
+  </div>
+
+  <div id="player-area" class="player-area">
+    <div class="piles">
+      <div class="pile-wrap">
+        <div id="stock-pile" class="pile"></div>
+        <div class="pile-label">Stock</div>
+      </div>
+      <div class="pile-wrap">
+        <div id="guide-card" class="pile"></div>
+        <div class="pile-label">Guide Card</div>
+      </div>
+    </div>
+    <div id="player-status" class="player-status"></div>
+  </div>
+</div>
+
+<div id="rules-modal" class="modal hidden">
+  <div class="modal-box rules-box">
+    <h2>How to Play Pyramid</h2>
+
+    <h3>Goal</h3>
+    <p>Clear every card out of the pyramid before you run out of cards in the stock.</p>
+
+    <h3>Setup</h3>
+    <p>28 cards are dealt into a triangular pyramid of 7 rows (1 card at the apex, 7 across the base). Only the base row starts face-up - every card above it is hidden until the two cards it rests on are both cleared. The remaining 24 cards form the stock, and the top card is flipped to become your starting guide card.</p>
+
+    <h3>Your Turn</h3>
+    <p>Click any face-up, uncovered pyramid card whose rank is exactly one higher or one lower than the guide card. That card is removed and becomes the new guide card. Aces count as both high and low, so a King or a 2 can follow an Ace.</p>
+
+    <h3>Stuck?</h3>
+    <p>If nothing in the pyramid matches, click the stock to draw a new guide card. You can also draw voluntarily at any time, even with a legal play available.</p>
+
+    <h3>Winning &amp; Losing</h3>
+    <p>Clear all 28 pyramid cards to win. If the stock runs out while no pyramid card matches the guide card, the game ends - you lose with however many cards remain uncleared.</p>
+
+    <button id="close-rules-btn">Close</button>
+  </div>
+</div>
+
+<div id="game-over-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="game-over-title">Game Over</h2>
+    <p id="game-over-detail"></p>
+    <div class="game-over-actions">
+      <button id="play-again-btn">Play Again</button>
+      <a href="../../index.html" class="btn secondary">Main Menu</a>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

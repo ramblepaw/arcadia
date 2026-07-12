@@ -18,4 +18,12 @@ export const GAMES = [
     accent: "#c0392b",
     scoreDirection: "asc",
   },
+  {
+    slug: "pyramid",
+    title: "Pyramid",
+    tagline: "Clear the pyramid, one rank up or down at a time.",
+    path: "games/pyramid/index.html",
+    accent: "#d9a441",
+    scoreDirection: "asc",
+  },
 ];
