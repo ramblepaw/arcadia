@@ -76,4 +76,13 @@ export const GAMES = [
     scoreDirection: "desc",
     leaderboardMetric: "winRate",
   },
+  {
+    slug: "monopoly",
+    title: "Monopoly",
+    tagline: "Buy it up, build it out, bankrupt everyone else.",
+    path: "games/monopoly/index.html",
+    accent: "#c9a227",
+    scoreDirection: "asc",
+    leaderboardMetric: "winRate",
+  },
 ];
