@@ -1,4 +1,4 @@
-// Card model and deck construction for Bullshit (aka BS / Cheat / I Doubt It).
+// Card model and deck construction for Cheat (aka Bullshit / BS / I Doubt It).
 //
 // Standard 52-card deck, ranks 2..14 where 11=J, 12=Q, 13=K, 14=A. Unlike
 // Palace, no rank has special play powers here - the only thing that matters

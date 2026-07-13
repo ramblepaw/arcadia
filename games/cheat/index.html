@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bullshit</title>
+<title>Cheat</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
 <div id="start-screen" class="screen">
   <div class="start-card">
     <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
-    <h1>Bullshit</h1>
+    <h1>Cheat</h1>
     <p class="tagline">Play your cards, call the claims, empty your hand first.</p>
     <label for="bot-count">Number of AI opponents</label>
     <select id="bot-count">
@@ -48,7 +48,7 @@
       <div id="pending-play" class="pending-play hidden"></div>
     </div>
     <div id="challenge-controls" class="challenge-controls hidden">
-      <button id="call-bs-btn" class="danger-btn">Call Bullshit!</button>
+      <button id="call-cheat-btn" class="danger-btn">Call Cheat!</button>
       <button id="trust-btn">Let It Ride</button>
     </div>
     <div id="game-log" class="game-log"></div>
@@ -68,7 +68,7 @@
 
 <div id="rules-modal" class="modal hidden">
   <div class="modal-box rules-box">
-    <h2>How to Play Bullshit</h2>
+    <h2>How to Play Cheat</h2>
 
     <h3>Goal</h3>
     <p>Be the first to empty your hand. Claims must go out and survive a challenge window to count - get caught bluffing on your last cards and you're still in the game.</p>
@@ -76,8 +76,8 @@
     <h3>The Claim Sequence</h3>
     <p>The whole deck is dealt out evenly. Turns go in a fixed order (you'll always play left to right no matter what happens), and every play must claim the next rank in this cycle: Ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K, then back to Ace. On your turn, play 1 to 4 cards face-down from your hand and claim they're all that rank - whether they actually are or not is up to you.</p>
 
-    <h3>Calling Bullshit</h3>
-    <p>After a play, everyone else gets a chance (in seat order) to call "Bullshit!" on it before it's too late. As soon as one player calls it, the play is revealed:</p>
+    <h3>Calling Cheat</h3>
+    <p>After a play, everyone else gets a chance (in seat order) to call "Cheat!" on it before it's too late. As soon as one player calls it, the play is revealed:</p>
     <ul>
       <li>If it <strong>was</strong> a lie, the player who played it picks up the entire pile.</li>
       <li>If it <strong>wasn't</strong> a lie, the challenger picks up the entire pile instead.</li>

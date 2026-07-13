@@ -1,4 +1,4 @@
-// The fixed claim sequence for Bullshit: every play must claim the next rank
+// The fixed claim sequence for Cheat: every play must claim the next rank
 // in this cycle, regardless of whether the claim turns out to be true. It
 // wraps around forever (Ace follows King).
 

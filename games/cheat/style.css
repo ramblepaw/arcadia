@@ -295,11 +295,11 @@ html, body {
   border: none;
 }
 
-#call-bs-btn {
+#call-cheat-btn {
   background: var(--danger);
   color: white;
 }
-#call-bs-btn:hover { box-shadow: 0 6px 16px rgba(192,57,43,0.4); transform: translateY(-1px); }
+#call-cheat-btn:hover { box-shadow: 0 6px 16px rgba(192,57,43,0.4); transform: translateY(-1px); }
 
 #trust-btn {
   background: var(--panel-light);

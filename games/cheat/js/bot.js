@@ -1,6 +1,6 @@
-// Bot AI for Bullshit. Two independent decisions:
+// Bot AI for Cheat. Two independent decisions:
 //   1. choosePlay   - what to put face-down when it's the bot's turn to play.
-//   2. decideChallenge - whether to call "Bullshit!" on someone else's claim.
+//   2. decideChallenge - whether to call "Cheat!" on someone else's claim.
 // Bots only ever see their own hand and the public claim (rank + count) -
 // never the actual cards played - so both heuristics work off imperfect
 // information, same as a human would.
@@ -46,7 +46,7 @@ export function choosePlay(hand, requiredRank) {
 }
 
 /**
- * Decide whether to call "Bullshit!" on a pending claim. `hand` is the
+ * Decide whether to call "Cheat!" on a pending claim. `hand` is the
  * deciding bot's own hand (used to reason about how many copies of the
  * claimed rank could plausibly be left elsewhere - only 4 of any rank
  * exist). `playerHandSizeAfterPlay` and `pileSize` shape the base suspicion:

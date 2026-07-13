@@ -143,8 +143,8 @@ export class Game {
     return true;
   }
 
-  /** The next queued challenger calls "Bullshit!" on the pending play. */
-  callBullshit(playerIdx) {
+  /** The next queued challenger calls "Cheat!" on the pending play. */
+  callCheat(playerIdx) {
     if (!this.pendingPlay || this.nextChallenger() !== playerIdx) return false;
     this.resolveChallenge(playerIdx);
     return true;
@@ -178,7 +178,7 @@ export class Game {
     if (lie) {
       player.hand.push(...pot);
       this.pushLog(
-        `${challenger.isHuman ? "You call" : `${challenger.name} calls`} Bullshit - caught! ` +
+        `${challenger.isHuman ? "You call" : `${challenger.name} calls`} Cheat - caught! ` +
         `${player.isHuman ? "You pick" : `${player.name} picks`} up ${pot.length} card(s).`
       );
       this.advanceAfterResolution(playerIdx);
@@ -187,7 +187,7 @@ export class Game {
 
     challenger.hand.push(...pot);
     this.pushLog(
-      `${challenger.isHuman ? "You call" : `${challenger.name} calls`} Bullshit - it was true! ` +
+      `${challenger.isHuman ? "You call" : `${challenger.name} calls`} Cheat - it was true! ` +
       `${challenger.isHuman ? "You pick" : `${challenger.name} picks`} up ${pot.length} card(s).`
     );
 

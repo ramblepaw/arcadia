@@ -11,7 +11,7 @@ let botTimer = null;
 function render() {
   ui.renderAll(game, {
     onRerender: render,
-    onCallBullshit: () => { game.callBullshit(0); },
+    onCallCheat: () => { game.callCheat(0); },
     onPassChallenge: () => { game.passChallenge(0); },
   });
 }
@@ -25,13 +25,13 @@ async function reportGameResult(finishedGame) {
     const result = human.finishRank === finishedGame.numPlayers ? "loss" : "win";
 
     await recordPlay({
-      gameSlug: "bullshit",
+      gameSlug: "cheat",
       score: human.finishRank,
       result,
       details: { numPlayers: finishedGame.numPlayers, finishRank: human.finishRank },
     });
   } catch (err) {
-    console.warn("[bullshit] could not record game result:", err);
+    console.warn("[cheat] could not record game result:", err);
   }
 }
 
@@ -82,7 +82,7 @@ function runBotChallengeStep() {
     pileSize: game.pile.length,
   });
 
-  if (decision) game.callBullshit(idx);
+  if (decision) game.callCheat(idx);
   else game.passChallenge(idx);
 }
 

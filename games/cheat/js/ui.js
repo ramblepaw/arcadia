@@ -160,7 +160,7 @@ function renderChallengeControls(game, handlers) {
   const wrap = document.getElementById("challenge-controls");
   const isMyDecision = game.pendingPlay && game.nextChallenger() === 0;
   wrap.classList.toggle("hidden", !isMyDecision);
-  document.getElementById("call-bs-btn").onclick = () => handlers.onCallBullshit();
+  document.getElementById("call-cheat-btn").onclick = () => handlers.onCallCheat();
   document.getElementById("trust-btn").onclick = () => handlers.onPassChallenge();
 }
 
