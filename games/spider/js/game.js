@@ -7,8 +7,8 @@ import {
   hasEmptyColumn,
   checkAndClearSequence,
   remainingCount,
-  hasAnyMove,
 } from "./rules.js";
+import { canMakeProgress } from "./solver.js";
 
 export const TOTAL_CARDS = 104;
 export { TOTAL_SEQUENCES };
@@ -211,14 +211,21 @@ export class Game {
       }
     }
 
+    // Completing a run is inherently a late-game event, so searching for a
+    // path to one while cards are still hidden (or the stock still has
+    // cards) is both expensive and pointless - new information is always
+    // still arriving, so the game is never truly stuck yet. Only run the
+    // full search once the whole board is exposed.
+    const fullyExposed = this.stock.length === 0 && this.tableau.every((col) => col.every((cell) => cell.faceUp));
+
     if (this.sequencesCompleted >= TOTAL_SEQUENCES) {
       this.phase = "gameOver";
       this.outcome = "win";
       this.message = "All eight sequences complete - you win!";
-    } else if (!hasAnyMove(this.tableau, this.canDeal())) {
+    } else if (fullyExposed && !canMakeProgress(this.tableau, this.stock)) {
       this.phase = "gameOver";
       this.outcome = "loss";
-      this.message = "No legal moves remain - game over.";
+      this.message = "No more progress is possible - game over.";
     }
 
     this.emit();

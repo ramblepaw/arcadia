@@ -5,8 +5,8 @@ import {
   getMovableSequence,
   hasWon,
   countOffFoundation,
-  hasAnyMove,
 } from "./rules.js";
+import { canMakeProgress } from "./solver.js";
 
 export const NUM_COLUMNS = 7;
 export const TOTAL_CARDS = 52;
@@ -321,10 +321,10 @@ export class Game {
       this.outcome = "win";
       this.message = "All four foundations complete - you win!";
       this.emit();
-    } else if (!hasAnyMove(this.tableau, this.stock, this.waste, this.foundations)) {
+    } else if (!canMakeProgress(this.tableau, this.stock, this.waste, this.foundations, this.drawCount)) {
       this.phase = "gameOver";
       this.outcome = "loss";
-      this.message = "No legal moves remain - game over.";
+      this.message = "No more progress is possible - game over.";
       this.emit();
     }
   }
