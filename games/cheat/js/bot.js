@@ -51,22 +51,30 @@ export function choosePlay(hand, requiredRank) {
  * claimed rank could plausibly be left elsewhere - only 4 of any rank
  * exist). `playerHandSizeAfterPlay` and `pileSize` shape the base suspicion:
  * a near-empty hand raises the incentive to bluff, and a bigger pile raises
- * the reward for a correct call.
+ * the reward for a correct call. `challengerCount` is how many players get a
+ * shot at this same claim - each individual bot has to stay well under the
+ * per-play base rate, or the combined odds across every challenger make
+ * bluffing essentially impossible the moment there's more than one bot.
  */
-export function decideChallenge(hand, { claimedRank, claimedCount, playerHandSizeAfterPlay, pileSize }) {
+export function decideChallenge(hand, { claimedRank, claimedCount, playerHandSizeAfterPlay, pileSize, challengerCount = 1 }) {
   const knownCopies = hand.filter((c) => c.rank === claimedRank).length;
 
   if (knownCopies + claimedCount > 4) {
-    // The math doesn't add up - this has to be a lie, but leave a sliver of
-    // doubt so bots aren't perfectly predictable card-counters.
-    return Math.random() < 0.92;
+    // The math doesn't add up - this has to be a lie, but leave real room
+    // for a missed read rather than turning every bot into a perfect
+    // card-counter that solves the game on the spot.
+    return Math.random() < 0.7;
   }
 
-  const countBase = { 1: 0.15, 2: 0.25, 3: 0.4, 4: 0.55 }[claimedCount] ?? 0.3;
+  const countBase = { 1: 0.06, 2: 0.11, 3: 0.18, 4: 0.26 }[claimedCount] ?? 0.15;
   let p = countBase;
-  if (playerHandSizeAfterPlay <= 2) p += 0.2;
-  if (pileSize >= 8) p += 0.1;
-  p += knownCopies * 0.08;
-  p = Math.min(0.9, Math.max(0.03, p));
+  if (playerHandSizeAfterPlay <= 2) p += 0.1;
+  if (pileSize >= 10) p += 0.05;
+  p += knownCopies * 0.05;
+  // Damp by sqrt(challengerCount) rather than leaving it uncorrected, so the
+  // chance of getting caught by *someone* grows gently with more players
+  // instead of compounding toward a near-certain catch.
+  p /= Math.sqrt(Math.max(1, challengerCount));
+  p = Math.min(0.8, Math.max(0.02, p));
   return Math.random() < p;
 }

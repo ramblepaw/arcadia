@@ -80,6 +80,7 @@ function runBotChallengeStep() {
     claimedCount: cards.length,
     playerHandSizeAfterPlay: game.players[playerIdx].hand.length,
     pileSize: game.pile.length,
+    challengerCount: game.numPlayers - 1,
   });
 
   if (decision) game.callCheat(idx);
