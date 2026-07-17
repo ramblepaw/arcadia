@@ -85,4 +85,12 @@ export const GAMES = [
     scoreDirection: "asc",
     leaderboardMetric: "winRate",
   },
+  {
+    slug: "backrooms-chess",
+    title: "Backrooms Chess",
+    tagline: "Noclip into a shifting liminal maze. Chess pieces hunt you through the dark.",
+    path: "games/backrooms-chess/index.html",
+    accent: "#a13a1f",
+    scoreDirection: "desc",
+  },
 ];

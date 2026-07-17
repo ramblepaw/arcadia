@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Backrooms Chess</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="crt-flicker">
+
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Atmospheric Overlays -->
+    <div class="scanlines"></div>
+    <div id="threat-vignette"></div>
+
+    <!-- UI Overlay (In-Game) -->
+    <div id="ui-layer" class="hidden">
+        <div class="hud-row">
+            <div class="hud-panel">
+                <h2 class="hud-title text-glow">SURVIVAL</h2>
+                <p class="hud-sub">MOVES: <span id="ui-moves" class="hud-value">0</span></p>
+                <p class="hud-sub">ENTITIES: <span id="ui-entities" class="hud-value">4</span></p>
+            </div>
+
+            <div class="hud-panel right">
+                <h2 class="hud-title text-glow">LEVEL <span id="ui-level">0</span></h2>
+                <p class="hud-sub" id="ui-biome">THE LOBBY</p>
+                <p class="hud-sub">SCORE: <span id="ui-score" class="hud-value">0</span></p>
+            </div>
+        </div>
+
+        <div class="hud-controls">
+            <div class="hud-buttons">
+                <button id="btn-grenade" class="btn-action btn-grenade hidden">
+                    &#128163; USE GRENADE (<span id="ui-grenades">0</span>)
+                </button>
+                <button id="btn-dash" class="btn-action btn-dash hidden">
+                    DASH (CHARGING...)
+                </button>
+            </div>
+            <div class="hud-help">
+                FIND THE ANOMALOUS KING <br>
+                <small>CLICK/SWIPE TO MOVE | DOUBLE-TAP TO CONFIRM | G TO GRENADE | SPACE TO DASH</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lore Modal -->
+    <div id="lore-modal" class="modal-overlay hidden">
+        <div class="modal-panel">
+            <h2 class="modal-title text-glow">&#128220; TAPE RECOVERED</h2>
+            <p id="lore-text" class="modal-body"></p>
+            <p class="modal-highlight">+500 PTS</p>
+            <button id="btn-lore-close" class="btn-action btn-dash btn-wide">
+                CONTINUE
+            </button>
+        </div>
+    </div>
+
+    <!-- Start Menu -->
+    <div id="start-menu" class="modal-overlay top">
+        <div class="modal-panel wide modal-bg">
+            <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
+            <h1 class="modal-title huge text-glow glitch-text">BACKROOMS<br>CHESS</h1>
+            <p class="highscore-line text-glow">HIGH SCORE: <span id="start-highscore">0</span></p>
+
+            <div class="info-box">
+                <p><strong class="biomes">BIOMES:</strong> Pool Rooms, Parking Zones, Pipe Dreams, &amp; Offices.</p>
+                <p><strong class="items">ITEMS:</strong> &#128167;(Dash) &#128267;(Light) &#128163;(Grenade) &#128220;(Lore).</p>
+                <p><strong class="threats">THREATS:</strong> Watch out for Rooks (Chargers) and Queens (Bosses).</p>
+            </div>
+
+            <div class="field">
+                <label for="board-size">STARTING MAP SIZE:</label>
+                <select id="board-size">
+                    <option value="30">30x30 (Standard)</option>
+                    <option value="50">50x50 (Deep Dive)</option>
+                </select>
+            </div>
+
+            <button id="btn-start" class="btn-action btn-dash btn-wide mt">
+                NOCLIP (ENTER)
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Over / Win Modal -->
+    <div id="end-modal" class="modal-overlay top hidden">
+        <div class="modal-panel danger modal-bg">
+            <h1 id="end-title" class="modal-title danger-title text-glow">ASSIMILATED</h1>
+            <p class="stat-line">You survived for <span id="end-moves" class="stat-value"></span> moves.</p>
+            <p class="stat-line">LEVELS TRAVELED: <span id="end-levels" class="stat-value">0</span></p>
+            <p class="stat-line">FINAL SCORE: <span id="end-score" class="stat-value final">0</span></p>
+            <button id="btn-restart" class="btn-action btn-dash btn-wide">
+                WAKE UP
+            </button>
+            <div class="menu-actions">
+                <a href="../../index.html" class="btn secondary">Main Menu</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
