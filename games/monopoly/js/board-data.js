@@ -104,6 +104,18 @@ export function gridPosition(spaceId) {
   return { row: 1 + (spaceId - 30), col: 11 };
 }
 
+/** Which side of the board a space sits on, for orienting its label so the
+ *  color band always faces the board's outer edge (like a real board) and
+ *  the text reads correctly from that side of the table. Corners (0/10/20/30)
+ *  aren't rotated - they render centered instead. */
+export function edgeOf(spaceId) {
+  if (spaceId > 0 && spaceId < 10) return "bottom";
+  if (spaceId > 10 && spaceId < 20) return "left";
+  if (spaceId > 20 && spaceId < 30) return "top";
+  if (spaceId > 30 && spaceId < 40) return "right";
+  return "corner";
+}
+
 export function ordinal(n) {
   const s = ["th", "st", "nd", "rd"];
   const v = n % 100;

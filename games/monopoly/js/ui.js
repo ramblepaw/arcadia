@@ -1,4 +1,4 @@
-import { SPACES, spaceAt, GROUP_COLORS, gridPosition, ordinal, JAIL_FINE } from "./board-data.js";
+import { SPACES, spaceAt, GROUP_COLORS, gridPosition, edgeOf, ordinal, JAIL_FINE } from "./board-data.js";
 import {
   ownedSpaceIds, canBuildHouse, canSellHouse, canMortgage, canUnmortgage,
   mortgageValueOf, unmortgageCostOf, liquidationSteps,
@@ -31,22 +31,45 @@ function mkBtn(label, onClick, variant) {
 
 function buildSpaceCell(game, space) {
   const pos = gridPosition(space.id);
+  const edge = edgeOf(space.id);
   const cell = document.createElement("div");
   cell.className = `space space-${space.type}`;
   cell.style.gridRow = String(pos.row);
   cell.style.gridColumn = String(pos.col);
 
+  // Everything but the owner/mortgage badges and player tokens lives inside a
+  // rotated wrapper, so the color band always faces the board's outer edge
+  // and the name/price read correctly from that side of the table - matching
+  // a real board instead of every space just facing "up".
+  const content = document.createElement("div");
+  content.className = `space-content edge-${edge}`;
+
   if (space.type === "property") {
     const bar = document.createElement("div");
     bar.className = "color-bar";
     bar.style.background = GROUP_COLORS[space.group];
-    cell.appendChild(bar);
+    content.appendChild(bar);
   }
 
   const name = document.createElement("div");
   name.className = "space-name";
   name.textContent = space.name;
-  cell.appendChild(name);
+  content.appendChild(name);
+
+  if (space.type === "property" || space.type === "railroad" || space.type === "utility") {
+    const prop = game.properties[space.id];
+    if (space.type === "property" && (prop.houses > 0 || prop.hotel)) {
+      const houses = document.createElement("div");
+      houses.className = "house-row";
+      houses.textContent = prop.hotel ? "⭐" : "⬛".repeat(prop.houses);
+      content.appendChild(houses);
+    }
+    const priceEl = document.createElement("div");
+    priceEl.className = "space-price";
+    priceEl.textContent = space.price ? `$${space.price}` : "";
+    content.appendChild(priceEl);
+  }
+  cell.appendChild(content);
 
   if (space.type === "property" || space.type === "railroad" || space.type === "utility") {
     const prop = game.properties[space.id];
@@ -62,16 +85,6 @@ function buildSpaceCell(game, space) {
         cell.appendChild(m);
       }
     }
-    if (space.type === "property" && (prop.houses > 0 || prop.hotel)) {
-      const houses = document.createElement("div");
-      houses.className = "house-row";
-      houses.textContent = prop.hotel ? "⭐" : "⬛".repeat(prop.houses);
-      cell.appendChild(houses);
-    }
-    const priceEl = document.createElement("div");
-    priceEl.className = "space-price";
-    priceEl.textContent = space.price ? `$${space.price}` : "";
-    cell.appendChild(priceEl);
   }
 
   const tokenRow = document.createElement("div");

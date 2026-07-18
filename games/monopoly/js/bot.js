@@ -102,7 +102,7 @@ export function decideLiquidationAction(botIdx, game) {
   return steps[0];
 }
 
-function propertyTradeValue(game, botIdx, spaceId, gaining) {
+function propertyTradeValue(game, botIdx, spaceId, gaining, requesterIdx) {
   const space = spaceAt(spaceId);
   let value = propertyValue(game, spaceId);
   if (space.type === "property") {
@@ -111,24 +111,34 @@ function propertyTradeValue(game, botIdx, spaceId, gaining) {
     if (otherOwnedByBot === groupIds.length - 1) {
       value *= gaining ? 2.2 : 2.5;
     }
+    // Giving up a property that would hand the requester a completed color
+    // group is bad regardless of price - it creates a rent trap for the bot
+    // itself down the line, so it's penalized independent of raw cash value.
+    if (!gaining && requesterIdx != null) {
+      const otherOwnedByRequester = groupIds.filter(
+        (id) => id !== spaceId && game.properties[id].ownerId === requesterIdx
+      ).length;
+      if (otherOwnedByRequester === groupIds.length - 1) value *= 3;
+    }
   }
   return value;
 }
 
 /** Whether to accept a proposed trade (`trade.toIdx` is always this bot -
  *  bots never initiate trades, only respond). Compares rough value on both
- *  sides with a monopoly-completion bonus/penalty and a small tolerance so
- *  bots aren't perfectly rational appraisers. */
+ *  sides with a monopoly-completion bonus/penalty, and only a small
+ *  tolerance for a marginally-unfavorable deal so a big pile of cash can't
+ *  buy an otherwise bad trade. */
 export function decideAcceptTrade(botIdx, game, trade) {
   const bot = game.players[botIdx];
   if (trade.requestCash > bot.cash) return false;
 
   let received = trade.offerCash;
   let given = trade.requestCash;
-  for (const id of trade.offerPropertyIds) received += propertyTradeValue(game, botIdx, id, true);
-  for (const id of trade.requestPropertyIds) given += propertyTradeValue(game, botIdx, id, false);
+  for (const id of trade.offerPropertyIds) received += propertyTradeValue(game, botIdx, id, true, trade.fromIdx);
+  for (const id of trade.requestPropertyIds) given += propertyTradeValue(game, botIdx, id, false, trade.fromIdx);
 
   const fairness = received - given;
-  const threshold = -(20 + Math.random() * 60);
+  const threshold = -(5 + Math.random() * 15);
   return fairness >= threshold;
 }

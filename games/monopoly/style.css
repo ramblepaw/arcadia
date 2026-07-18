@@ -10,6 +10,15 @@
   --text-dim: #c9d2cc;
   --danger: #c0392b;
   --ok: #2e9e5b;
+
+  /* The physical board itself (not the surrounding chrome) uses a cream/white
+     "printed board" palette instead of the felt theme, to actually look like
+     a Monopoly board rather than a card-table mat. */
+  --board-face: #efe4c8;
+  --board-line: rgba(40,30,10,0.18);
+  --space-bg: #faf6e8;
+  --ink: #241d10;
+  --ink-dim: #6b5c3c;
 }
 
 html, body {
@@ -155,37 +164,58 @@ html, body {
   aspect-ratio: 1 / 1;
   width: 100%;
   gap: 1px;
-  background: var(--felt-dark);
-  border: 2px solid var(--panel-light);
+  background: var(--board-face);
+  border: 3px solid var(--accent);
   border-radius: 8px;
   overflow: hidden;
 }
 
 .space {
-  background: #0f4a30;
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--space-bg);
+  border: 1px solid var(--board-line);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
+  align-items: stretch;
+  justify-content: stretch;
   position: relative;
   overflow: hidden;
-  padding: 1px 2px 2px;
+  padding: 0;
   font-size: 0.52em;
   text-align: center;
   line-height: 1.05;
 }
 
 .space-go, .space-jail, .space-freeParking, .space-goToJail {
-  background: #123f2c;
+  background: var(--board-face);
   font-weight: 700;
   font-size: 0.62em;
+}
+.space-go .space-content, .space-jail .space-content,
+.space-freeParking .space-content, .space-goToJail .space-content {
   justify-content: center;
+  transform: none !important;
 }
 
+/* Rotates the color band + name + price so the band always faces the
+   board's outer edge and text reads correctly from that side of the table -
+   the top row is the "natural" unrotated orientation. */
+.space-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 1px 2px 2px;
+  color: var(--ink);
+}
+.edge-top { transform: rotate(0deg); }
+.edge-bottom { transform: rotate(180deg); }
+.edge-left { transform: rotate(-90deg); }
+.edge-right { transform: rotate(90deg); }
+
 .color-bar { width: 100%; height: 22%; flex-shrink: 0; }
-.space-name { color: var(--text); padding: 1px; word-break: break-word; }
-.space-price { color: var(--text-dim); font-size: 0.9em; }
+.space-name { color: var(--ink); padding: 1px; word-break: break-word; }
+.space-price { color: var(--ink-dim); font-size: 0.9em; margin-top: auto; }
 
 .owner-badge {
   position: absolute;
@@ -195,6 +225,7 @@ html, body {
   height: 8px;
   border-radius: 50%;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+  z-index: 2;
 }
 .mortgaged-badge {
   position: absolute;
@@ -203,9 +234,10 @@ html, body {
   font-size: 0.85em;
   font-weight: 700;
   color: var(--danger);
-  background: rgba(0,0,0,0.5);
+  background: rgba(255,255,255,0.7);
   border-radius: 3px;
   padding: 0 2px;
+  z-index: 2;
 }
 .house-row { font-size: 0.85em; line-height: 1; letter-spacing: 1px; }
 
@@ -234,12 +266,13 @@ html, body {
   justify-content: center;
   gap: 8px;
   padding: 10px;
-  background: var(--panel);
+  background: var(--board-face);
+  border: 1px solid var(--board-line);
 }
 
 .status-text {
-  font-weight: 600;
-  color: var(--accent);
+  font-weight: 700;
+  color: #7a4a12;
   text-align: center;
   font-size: clamp(0.7em, 2vw, 0.95em);
 }
@@ -274,19 +307,27 @@ html, body {
 .btn.primary { background: var(--accent); color: #241c02; font-weight: 700; border: none; }
 .btn.secondary { background: var(--panel-light); }
 
+.board-center .btn {
+  background: rgba(36,28,10,0.08);
+  color: var(--ink);
+  border: 1px solid rgba(36,28,10,0.25);
+}
+.board-center .btn:hover:not(:disabled) { background: rgba(36,28,10,0.16); }
+.board-center .btn.primary { background: var(--accent); color: #241c02; border: none; }
+
 .game-log {
   width: 100%;
   max-height: 90px;
   overflow-y: auto;
-  background: rgba(0,0,0,0.25);
-  border: 1px solid var(--panel-light);
+  background: rgba(36,28,10,0.06);
+  border: 1px solid var(--board-line);
   border-radius: 8px;
   padding: 6px 8px;
   font-size: 0.7em;
-  color: var(--text-dim);
+  color: var(--ink-dim);
 }
 .log-line { padding: 1px 0; }
-.log-line.latest { color: var(--text); font-weight: 600; }
+.log-line.latest { color: var(--ink); font-weight: 600; }
 
 /* ---------- Player panels ---------- */
 .player-panels {
