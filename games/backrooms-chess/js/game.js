@@ -78,8 +78,31 @@ export function initBackroomsChess({ onGameOver } = {}) {
     const btnDash = document.getElementById('btn-dash');
     const btnGrenade = document.getElementById('btn-grenade');
     const threatVignette = document.getElementById('threat-vignette');
+    const reduceFlickerCheckbox = document.getElementById('reduce-flicker');
 
     document.getElementById('start-highscore').innerText = highScore;
+
+    // --- ACCESSIBILITY: REDUCE FLICKER ---
+    // Covers the persistent low-level CRT flicker on the whole screen and the
+    // Parking Zone biome's random light-flashing - both can be genuinely
+    // unpleasant or risky for photosensitive players, so this is a real
+    // opt-out, not just a cosmetic toggle.
+    const storedFlickerPref = localStorage.getItem('backroomsChessReduceFlicker');
+    let reduceFlicker = storedFlickerPref !== null
+        ? storedFlickerPref === 'true'
+        : window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function applyReduceFlicker() {
+        document.body.classList.toggle('crt-flicker', !reduceFlicker);
+        reduceFlickerCheckbox.checked = reduceFlicker;
+    }
+    applyReduceFlicker();
+
+    reduceFlickerCheckbox.addEventListener('change', () => {
+        reduceFlicker = reduceFlickerCheckbox.checked;
+        localStorage.setItem('backroomsChessReduceFlicker', String(reduceFlicker));
+        applyReduceFlicker();
+    });
 
     // --- INITIALIZATION ---
     // Deferred to the window 'load' event (not run inline) so the browser has
@@ -568,7 +591,7 @@ export function initBackroomsChess({ onGameOver } = {}) {
         }
 
         // 4. Flicker lights
-        if (currentBiome.flickering && Math.random() < 0.2) {
+        if (!reduceFlicker && currentBiome.flickering && Math.random() < 0.2) {
             lights.forEach(l => l.on = Math.random() > 0.3);
         }
 
