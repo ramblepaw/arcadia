@@ -225,7 +225,6 @@ button, select {
 }
 
 .btn-dash {
-  display: none;
   padding: 0.5rem 1.5rem;
 }
 
@@ -432,19 +431,10 @@ button, select {
   .hud-help small {
     font-size: 0.75rem;
   }
-  .btn-dash {
-    display: block;
-  }
   .modal-panel.wide {
     padding: 2rem;
   }
   .modal-title.huge {
     font-size: 3rem;
-  }
-}
-
-@media (max-width: 767px) {
-  .btn-dash {
-    display: none;
   }
 }
