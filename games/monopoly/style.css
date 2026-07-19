@@ -153,7 +153,7 @@ html, body {
 
 /* ---------- Board ---------- */
 #board-wrap {
-  width: min(96vw, 820px);
+  width: min(97vw, 1080px);
   padding: 14px 10px;
 }
 
@@ -179,50 +179,53 @@ html, body {
   position: relative;
   overflow: hidden;
   padding: 0;
-  font-size: 0.52em;
+  font-size: clamp(7.5px, 1.85vw, 15px);
   text-align: center;
-  line-height: 1.05;
+  line-height: 1.1;
 }
 
 .space-go, .space-jail, .space-freeParking, .space-goToJail {
   background: var(--board-face);
   font-weight: 700;
-  font-size: 0.62em;
+  font-size: clamp(9px, 2.2vw, 18px);
 }
 .space-go .space-content, .space-jail .space-content,
 .space-freeParking .space-content, .space-goToJail .space-content {
+  flex-direction: column;
   justify-content: center;
   transform: none !important;
 }
 
-/* Rotates the color band + name + price so the band always faces the
-   board's outer edge and text reads correctly from that side of the table -
-   the top row is the "natural" unrotated orientation. */
+/* The board only has one viewer (not four players seated around a table),
+   so top/bottom rows never get flipped upside down - only the color band's
+   position swaps side via flex-direction. Left/right columns are narrow, so
+   their content is rotated 90 so the text actually fits and reads
+   top-to-bottom along the column, same as a physical board. */
 .space-content {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding: 1px 2px 2px;
+  justify-content: space-between;
+  padding: 2px 3px 3px;
   color: var(--ink);
 }
-.edge-top { transform: rotate(0deg); }
-.edge-bottom { transform: rotate(180deg); }
-.edge-left { transform: rotate(-90deg); }
-.edge-right { transform: rotate(90deg); }
+.edge-top { flex-direction: column; }
+.edge-bottom { flex-direction: column-reverse; }
+.edge-left { flex-direction: column; transform: rotate(-90deg); }
+.edge-right { flex-direction: column; transform: rotate(90deg); }
 
-.color-bar { width: 100%; height: 22%; flex-shrink: 0; }
-.space-name { color: var(--ink); padding: 1px; word-break: break-word; }
-.space-price { color: var(--ink-dim); font-size: 0.9em; margin-top: auto; }
+.color-bar { width: 100%; height: 24%; flex-shrink: 0; }
+.space-name { color: var(--ink); padding: 1px; word-break: break-word; font-weight: 600; }
+.space-price { color: var(--ink-dim); font-size: 0.95em; }
 
 .owner-badge {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
   z-index: 2;
@@ -252,8 +255,8 @@ html, body {
   justify-content: center;
 }
 .token {
-  width: 8px;
-  height: 8px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   border: 1px solid rgba(0,0,0,0.6);
 }
@@ -331,7 +334,7 @@ html, body {
 
 /* ---------- Player panels ---------- */
 .player-panels {
-  width: min(96vw, 820px);
+  width: min(97vw, 1080px);
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -456,5 +459,4 @@ html, body {
 
 @media (max-width: 480px) {
   .start-card { padding: 28px 24px; }
-  .space { font-size: 0.44em; }
 }
