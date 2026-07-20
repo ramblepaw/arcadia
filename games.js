@@ -158,6 +158,24 @@ export const GAMES = [
     </svg>`,
   },
   {
+    slug: "sequence",
+    title: "Sequence",
+    tagline: "Play a card, place a chip. Five in a row wins it.",
+    path: "games/sequence/index.html",
+    accent: "#4f8cff",
+    scoreDirection: "desc",
+    leaderboardMetric: "winRate",
+    icon: `<svg ${ICON_ATTRS}>
+      <rect x="5" y="5" width="38" height="38" rx="3"/>
+      <circle cx="14" cy="14" r="3.6" fill="currentColor" stroke="none"/>
+      <circle cx="24" cy="18" r="3.6" fill="currentColor" stroke="none"/>
+      <circle cx="34" cy="22" r="3.6" fill="currentColor" stroke="none"/>
+      <circle cx="17.5" cy="30.5" r="3.6"/>
+      <circle cx="27.5" cy="34.5" r="3.6"/>
+      <path d="M14 14 L24 18 L34 22" stroke-dasharray="1 4"/>
+    </svg>`,
+  },
+  {
     slug: "backrooms-chess",
     title: "Backrooms Chess",
     tagline: "Noclip into a shifting liminal maze. Chess pieces hunt you through the dark.",
