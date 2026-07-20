@@ -1,6 +1,6 @@
 import { Game } from "./game.js";
 import * as ui from "./ui.js";
-import { getMe, recordPlay } from "/api-client.js";
+import { getMe, recordPlay, trackAbandonment } from "/api-client.js";
 
 let game = null;
 
@@ -22,6 +22,14 @@ async function reportGameResult(finishedGame) {
     console.warn("[freecell] could not record game result:", err);
   }
 }
+
+trackAbandonment("freecell", () => {
+  if (!game || game.isGameOver) return null;
+  return {
+    score: game.points,
+    details: { movesUsed: game.moves, cardsRemaining: game.score() },
+  };
+});
 
 function render() {
   ui.renderAll(game, {

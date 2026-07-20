@@ -1,7 +1,7 @@
 import { Game } from "./game.js";
 import { choosePlay, decideChallenge } from "./bot.js";
 import * as ui from "./ui.js";
-import { getMe, recordPlay } from "/api-client.js";
+import { getMe, recordPlay, trackAbandonment } from "/api-client.js";
 
 const BOT_STEP_DELAY = 1100;
 
@@ -56,6 +56,14 @@ function onStateChange() {
 
   if (!game.currentPlayer.isHuman) scheduleBotPlayStep();
 }
+
+trackAbandonment("cheat", () => {
+  if (!game || game.isGameOver) return null;
+  return {
+    score: game.numPlayers,
+    details: { numPlayers: game.numPlayers, finishRank: game.numPlayers },
+  };
+});
 
 function scheduleBotChallengeStep() {
   if (botTimer) clearTimeout(botTimer);

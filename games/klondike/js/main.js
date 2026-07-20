@@ -1,6 +1,6 @@
 import { Game } from "./game.js";
 import * as ui from "./ui.js";
-import { getMe, recordPlay } from "/api-client.js";
+import { getMe, recordPlay, trackAbandonment } from "/api-client.js";
 
 let game = null;
 
@@ -25,6 +25,20 @@ async function reportGameResult(finishedGame) {
     console.warn("[klondike] could not record game result:", err);
   }
 }
+
+trackAbandonment("klondike", () => {
+  if (!game || game.isGameOver) return null;
+  return {
+    score: game.score,
+    details: {
+      movesUsed: game.moves,
+      foundationCards: game.foundationCount(),
+      redealsUsed: game.redeals,
+      drawCount: game.drawCount,
+      cardsRemaining: game.remaining(),
+    },
+  };
+});
 
 function render() {
   ui.renderAll(game, {

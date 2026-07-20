@@ -1,6 +1,6 @@
 import { Game, TOTAL_PYRAMID_CARDS } from "./game.js";
 import * as ui from "./ui.js";
-import { getMe, recordPlay } from "/api-client.js";
+import { getMe, recordPlay, trackAbandonment } from "/api-client.js";
 
 let game = null;
 
@@ -24,6 +24,19 @@ async function reportGameResult(finishedGame) {
     console.warn("[pyramid] could not record game result:", err);
   }
 }
+
+trackAbandonment("pyramid", () => {
+  if (!game || game.isGameOver) return null;
+  const remaining = game.remaining();
+  return {
+    score: remaining,
+    details: {
+      movesUsed: game.moves,
+      cardsCleared: TOTAL_PYRAMID_CARDS - remaining,
+      stockRemaining: game.stockCount(),
+    },
+  };
+});
 
 function render() {
   ui.renderAll(game, {

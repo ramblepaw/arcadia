@@ -70,6 +70,38 @@ export function recordPlay({ gameSlug, score, result, details }) {
   });
 }
 
+// Without this, a player who's about to lose can just close the tab or
+// navigate back to the hub and nothing ever gets recorded - not a loss, not
+// anything - so their record stays clean. pagehide fires when the page is
+// actually being torn down (navigation, tab close, reload) but NOT on a
+// plain tab-switch, so alt-tabbing away from a game in progress doesn't
+// falsely record a loss. sendBeacon (rather than fetch) is used because it's
+// the one request type browsers guarantee gets sent during page teardown.
+//
+// gameSlug: this game's slug.
+// getUnfinishedState: () => null | { score, details } - called at teardown.
+//   Return null once the game has concluded on its own (recordPlay already
+//   fired for it) or hasn't started yet; otherwise return the current
+//   score/details to report as a loss.
+export function trackAbandonment(gameSlug, getUnfinishedState) {
+  window.addEventListener("pagehide", () => {
+    let state;
+    try {
+      state = getUnfinishedState();
+    } catch {
+      return;
+    }
+    if (!state) return;
+    const payload = JSON.stringify({
+      gameSlug,
+      score: state.score,
+      result: "loss",
+      details: { ...(state.details || {}), abandoned: true },
+    });
+    navigator.sendBeacon("/api/plays", new Blob([payload], { type: "application/json" }));
+  });
+}
+
 export function getMyStats({ gameSlug, limit } = {}) {
   const params = new URLSearchParams();
   if (gameSlug) params.set("gameSlug", gameSlug);

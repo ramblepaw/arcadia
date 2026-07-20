@@ -5,7 +5,7 @@ import {
 } from "./bot.js";
 import { netWorth } from "./rules.js";
 import * as ui from "./ui.js";
-import { getMe, recordPlay } from "/api-client.js";
+import { getMe, recordPlay, trackAbandonment } from "/api-client.js";
 
 const BOT_STEP_DELAY = 1100;
 
@@ -63,6 +63,14 @@ async function reportGameResult(finishedGame) {
     console.warn("[monopoly] could not record game result:", err);
   }
 }
+
+trackAbandonment("monopoly", () => {
+  if (!game || game.isGameOver) return null;
+  return {
+    score: game.numPlayers,
+    details: { numPlayers: game.numPlayers, finishRank: game.numPlayers },
+  };
+});
 
 function scheduleBotStep(fn) {
   if (botTimer) clearTimeout(botTimer);

@@ -1036,4 +1036,11 @@ export function initBackroomsChess({ onGameOver } = {}) {
             }
         }
     }
+
+    return {
+        getUnfinishedState() {
+            if (gameState !== 'PLAYING' && gameState !== 'PAUSED') return null;
+            return { score, movesCount, levelsTraveled: currentLevel, boardSize };
+        },
+    };
 }

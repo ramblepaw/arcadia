@@ -1,6 +1,6 @@
 import { Game } from "./game.js";
 import * as ui from "./ui.js";
-import { getMe, recordPlay } from "/api-client.js";
+import { getMe, recordPlay, trackAbandonment } from "/api-client.js";
 
 let game = null;
 
@@ -24,6 +24,19 @@ async function reportGameResult(finishedGame) {
     console.warn("[spider] could not record game result:", err);
   }
 }
+
+trackAbandonment("spider", () => {
+  if (!game || game.isGameOver) return null;
+  return {
+    score: game.score,
+    details: {
+      movesUsed: game.moves,
+      suitCount: game.suitCount,
+      sequencesCompleted: game.sequencesCompleted,
+      cardsRemaining: game.remaining(),
+    },
+  };
+});
 
 function render() {
   ui.renderAll(game, {

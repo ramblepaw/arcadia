@@ -1,7 +1,7 @@
 import { Game } from "./game.js";
 import { botDecideDraw, chooseDiscard } from "./bot.js";
 import * as ui from "./ui.js";
-import { getMe, recordPlay } from "/api-client.js";
+import { getMe, recordPlay, trackAbandonment } from "/api-client.js";
 
 const BOT_STEP_DELAY = 650;
 
@@ -65,6 +65,15 @@ async function reportGameResult(finishedGame) {
     console.warn("[five-crowns] could not record game result:", err);
   }
 }
+
+trackAbandonment("five-crowns", () => {
+  if (!game || game.gameOver) return null;
+  const human = game.players.find((p) => p.isHuman);
+  return {
+    score: human.totalScore,
+    details: { roundScores: human.roundScores, numPlayers: game.numPlayers },
+  };
+});
 
 function scheduleBotStep() {
   if (botTimer) clearTimeout(botTimer);

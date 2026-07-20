@@ -1,5 +1,5 @@
 import { initBackroomsChess } from "./game.js";
-import { getMe, recordPlay } from "/api-client.js";
+import { getMe, recordPlay, trackAbandonment } from "/api-client.js";
 
 async function reportGameResult({ score, movesCount, levelsTraveled, boardSize }) {
   try {
@@ -17,4 +17,17 @@ async function reportGameResult({ score, movesCount, levelsTraveled, boardSize }
   }
 }
 
-initBackroomsChess({ onGameOver: reportGameResult });
+const game = initBackroomsChess({ onGameOver: reportGameResult });
+
+trackAbandonment("backrooms-chess", () => {
+  const state = game.getUnfinishedState();
+  if (!state) return null;
+  return {
+    score: state.score,
+    details: {
+      movesCount: state.movesCount,
+      levelsTraveled: state.levelsTraveled,
+      boardSize: state.boardSize,
+    },
+  };
+});

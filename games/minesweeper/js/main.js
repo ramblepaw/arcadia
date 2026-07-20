@@ -1,6 +1,6 @@
 import { Game } from "./game.js";
 import * as ui from "./ui.js";
-import { getMe, recordPlay } from "/api-client.js";
+import { getMe, recordPlay, trackAbandonment } from "/api-client.js";
 
 let game = null;
 let flagMode = false;
@@ -26,6 +26,19 @@ async function reportGameResult(finishedGame) {
     console.warn("[minesweeper] could not record game result:", err);
   }
 }
+
+trackAbandonment("minesweeper", () => {
+  if (!game || game.isGameOver || !game.minesPlaced) return null;
+  return {
+    score: game.elapsedSeconds(),
+    details: {
+      difficulty: game.difficultyKey,
+      rows: game.config.rows,
+      cols: game.config.cols,
+      mines: game.config.mines,
+    },
+  };
+});
 
 function stopTimer() {
   if (timerInterval) {
