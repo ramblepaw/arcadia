@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dbPath = path.resolve(__dirname, "..", process.env.DB_PATH || "../data/games.db");
+export const dataDir = path.dirname(dbPath);
 
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 

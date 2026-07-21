@@ -1,0 +1,58 @@
+{
+  "locations": [
+    {
+      "slug": "meadow",
+      "name": "Sunny Meadow",
+      "biome": "grassland",
+      "flavorText": "Rolling grass and wildflowers stretch to the tree line.",
+      "stepMultiplier": 1.4,
+      "itemDropChance": 0.03,
+      "items": ["everstone"]
+    },
+    {
+      "slug": "old-forest",
+      "name": "Old Forest",
+      "biome": "forest",
+      "flavorText": "Tangled canopy overhead, wings buzzing somewhere close.",
+      "stepMultiplier": 1.5,
+      "itemDropChance": 0.03,
+      "items": ["everstone", "destiny-knot"]
+    },
+    {
+      "slug": "tide-pools",
+      "name": "Tide Pools",
+      "biome": "water",
+      "flavorText": "Cool water laps at the rocks, clear down to the sand.",
+      "stepMultiplier": 1.5,
+      "itemDropChance": 0.03,
+      "items": ["destiny-knot"]
+    },
+    {
+      "slug": "craggy-peak",
+      "name": "Craggy Peak",
+      "biome": "mountain",
+      "flavorText": "Thin air and sharp stone, wind whistling through the pass.",
+      "stepMultiplier": 1.6,
+      "itemDropChance": 0.04,
+      "items": ["everstone"]
+    },
+    {
+      "slug": "dry-basin",
+      "name": "Dry Basin",
+      "biome": "desert",
+      "flavorText": "Cracked earth under a hot, wide-open sky.",
+      "stepMultiplier": 1.6,
+      "itemDropChance": 0.04,
+      "items": ["destiny-knot"]
+    },
+    {
+      "slug": "old-town",
+      "name": "Old Town",
+      "biome": "urban",
+      "flavorText": "Quiet streets and flickering signs, faintly humming with static.",
+      "stepMultiplier": 1.4,
+      "itemDropChance": 0.03,
+      "items": ["everstone", "destiny-knot"]
+    }
+  ]
+}

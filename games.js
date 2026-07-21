@@ -211,4 +211,18 @@ export const GAMES = [
       <circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/>
     </svg>`,
   },
+  {
+    slug: "pokemon-breeder",
+    title: "Pokemon Breeder",
+    tagline: "Build a ranch, breed real Pokemon, run a little zoo.",
+    path: "games/pokemon-breeder/index.html",
+    accent: "#d16ba5",
+    scoreDirection: "desc",
+    icon: `<svg ${ICON_ATTRS}>
+      <path d="M24 6 C14 6 8 22 8 32 C8 40 15 44 24 44 C33 44 40 40 40 32 C40 22 34 6 24 6 Z"/>
+      <circle cx="18" cy="26" r="1.6" fill="currentColor" stroke="none"/>
+      <circle cx="28" cy="20" r="1.6" fill="currentColor" stroke="none"/>
+      <circle cx="30" cy="32" r="1.6" fill="currentColor" stroke="none"/>
+    </svg>`,
+  },
 ];
