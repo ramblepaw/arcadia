@@ -211,6 +211,4 @@ export const GAMES = [
       <circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/>
     </svg>`,
   },
-  // pokemon-breeder: still in development (admin-only, see
-  // pokemonBreeder.js) - re-add this hub tile when ready to launch.
 ];
