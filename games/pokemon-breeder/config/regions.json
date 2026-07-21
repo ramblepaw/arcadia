@@ -16,20 +16,12 @@
         "east": "water",
         "west": "desert"
       },
-      "legend": {
-        "!": {
-          "tileset": "The Basics.png",
-          "tx": 3,
-          "ty": 1,
-          "blocking": false,
-          "resource": false
-        }
-      },
+      "legend": {},
       "rows": [
         "                                  ",
         "                                  ",
         "                                  ",
-        "           !                      ",
+        "                                  ",
         "                                  ",
         "                                  ",
         "                                  ",

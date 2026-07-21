@@ -1,4 +1,4 @@
-import { TILE_PX, CHAR_FRAME_PX, loadTileset, loadCharacterSheet, drawTileCell, drawCharacterFrame, DEFAULT_CHARACTER_SHEET } from "./tileset.js";
+import { TILE_PX, CHAR_FRAME_PX, loadTileset, loadCharacterSheet, drawTileCell, drawCharacterFrame, DEFAULT_CHARACTER_SHEET, computeAutotileMask, autotilePosition, autotileIsOpenNeighbor } from "./tileset.js";
 
 const SCALE = 2;
 const TILE_SIZE = TILE_PX * SCALE;
@@ -222,7 +222,16 @@ export async function createWorld(canvas, { initialRegion, initialX, initialY, a
         const entry = legendEntryAt(state.region, x, y);
         if (!entry) continue;
         const img = tilesetCache.get(entry.tileset);
-        if (img) drawTileCell(ctx, img, entry.tx, entry.ty, px, py, TILE_SIZE);
+        if (!img) continue;
+        if (entry.autotile) {
+          const mask = computeAutotileMask((dx, dy) =>
+            autotileIsOpenNeighbor(legendEntryAt(state.region, x + dx, y + dy), entry)
+          );
+          const [ax, ay] = autotilePosition(mask);
+          drawTileCell(ctx, img, ax, ay, px, py, TILE_SIZE);
+        } else {
+          drawTileCell(ctx, img, entry.tx, entry.ty, px, py, TILE_SIZE);
+        }
       }
     }
 

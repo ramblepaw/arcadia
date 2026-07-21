@@ -1,6 +1,6 @@
 import { getMe } from "/api-client.js";
 import * as api from "./api.js";
-import { TILE_PX, loadTileset, drawTileCell } from "./tileset.js";
+import { TILE_PX, loadTileset, drawTileCell, AUTOTILE_FOLDER, computeAutotileMask, autotilePosition, autotileIsOpenNeighbor } from "./tileset.js";
 
 const CELL_PX = 24;
 const CHAR_POOL = [];
@@ -14,14 +14,16 @@ let tilesets = [];
 let currentSlug = null;
 let region = null; // working copy: {name,biome,width,height,ground,exits,legend,rows}
 let tilesetImage = null;
-let selectedTile = null; // {tileset,tx,ty}
+let selectedTile = null; // {tileset,tx,ty,w,h} or {tileset,autotile:true}
 let currentTool = "tile";
 let painting = false;
+let paletteDragStart = null;
 
 const els = {};
 function $(id) { return document.getElementById(id); }
 
 function canonicalKey(entry) {
+  if (entry.autotile) return `AUTO|${entry.tileset}|${entry.blocking ? 1 : 0}|${entry.resource ? 1 : 0}`;
   return `${entry.tileset}|${entry.tx}|${entry.ty}|${entry.blocking ? 1 : 0}|${entry.resource ? 1 : 0}`;
 }
 
@@ -74,8 +76,56 @@ function escapeAttr(s) {
 
 async function loadTilesetIntoPalette(name) {
   tilesetImage = await loadTileset(name);
-  const meta = tilesets.find((t) => t.name === name);
+  // Fixes the "only one tileset works" bug: this is the same cache
+  // renderCanvas/renderMainMap read from - previously only `tilesetImage`
+  // (the palette's own variable) was set here, so a tileset painted for the
+  // first time in a session wouldn't actually render on the map until the
+  // whole region was reloaded.
+  tilesetImageCache.set(name, tilesetImage);
   els.paletteGrid.innerHTML = "";
+
+  if (name.startsWith(AUTOTILE_FOLDER)) {
+    renderAutotileSwatch(name);
+    return;
+  }
+
+  const meta = tilesets.find((t) => t.name === name);
+  renderRegularPalette(name, meta);
+}
+
+function renderAutotileSwatch(name) {
+  const wrap = document.createElement("div");
+  wrap.style.cssText = "grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:6px;";
+  const c = document.createElement("canvas");
+  c.width = 64; c.height = 64;
+  const ctx = c.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  drawTileCell(ctx, tilesetImage, 1, 1, 0, 0, 64); // interior tile as a representative preview
+  c.style.cursor = "pointer";
+  c.addEventListener("click", () => {
+    selectedTile = { tileset: name, autotile: true };
+    c.classList.add("selected");
+  });
+  const label = document.createElement("div");
+  label.textContent = "Autotile brush - click to select";
+  label.style.cssText = "font-size:11px;color:var(--text-dim);text-align:center;";
+  wrap.appendChild(c);
+  wrap.appendChild(label);
+  els.paletteGrid.appendChild(wrap);
+}
+
+function renderRegularPalette(name, meta) {
+  paletteDragStart = null;
+  const cellEls = [];
+  function updateSelectionHighlight(start, end) {
+    const x0 = Math.min(start.tx, end.tx), x1 = Math.max(start.tx, end.tx);
+    const y0 = Math.min(start.ty, end.ty), y1 = Math.max(start.ty, end.ty);
+    for (const el of cellEls) {
+      const tx = Number(el.dataset.tx), ty = Number(el.dataset.ty);
+      el.classList.toggle("selected", tx >= x0 && tx <= x1 && ty >= y0 && ty <= y1);
+    }
+    selectedTile = { tileset: name, tx: x0, ty: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+  }
   for (let ty = 0; ty < meta.rows; ty++) {
     for (let tx = 0; tx < meta.cols; tx++) {
       const c = document.createElement("canvas");
@@ -84,11 +134,15 @@ async function loadTilesetIntoPalette(name) {
       const ctx = c.getContext("2d");
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(tilesetImage, tx * TILE_PX, ty * TILE_PX, TILE_PX, TILE_PX, 0, 0, 28, 28);
-      c.addEventListener("click", () => {
-        selectedTile = { tileset: name, tx, ty };
-        for (const el of els.paletteGrid.children) el.classList.remove("selected");
-        c.classList.add("selected");
+      c.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        paletteDragStart = { tx, ty };
+        updateSelectionHighlight(paletteDragStart, paletteDragStart);
       });
+      c.addEventListener("mouseenter", () => {
+        if (paletteDragStart) updateSelectionHighlight(paletteDragStart, { tx, ty });
+      });
+      cellEls.push(c);
       els.paletteGrid.appendChild(c);
     }
   }
@@ -122,7 +176,15 @@ function renderCanvas() {
       const entry = entryAt(x, y);
       if (entry) {
         const img = tilesetImageCache.get(entry.tileset);
-        if (img) drawTileCell(ctx, img, entry.tx, entry.ty, px, py, CELL_PX);
+        if (img) {
+          if (entry.autotile) {
+            const mask = computeAutotileMask((dx, dy) => autotileIsOpenNeighbor(entryAt(x + dx, y + dy), entry));
+            const [ax, ay] = autotilePosition(mask);
+            drawTileCell(ctx, img, ax, ay, px, py, CELL_PX);
+          } else {
+            drawTileCell(ctx, img, entry.tx, entry.ty, px, py, CELL_PX);
+          }
+        }
         if (entry.blocking) {
           ctx.fillStyle = "rgba(200,40,40,0.35)";
           ctx.fillRect(px, py, CELL_PX, CELL_PX);
@@ -151,8 +213,23 @@ function applyToolAt(x, y) {
   if (x < 0 || y < 0 || x >= region.width || y >= region.height) return;
   if (currentTool === "tile") {
     if (!selectedTile) return;
-    const ch = findOrCreateChar({ ...selectedTile, blocking: false, resource: false });
-    setCell(x, y, ch);
+    if (selectedTile.autotile) {
+      const ch = findOrCreateChar({ tileset: selectedTile.tileset, autotile: true, blocking: false, resource: false });
+      setCell(x, y, ch);
+    } else {
+      const w = selectedTile.w || 1, h = selectedTile.h || 1;
+      for (let dy = 0; dy < h; dy++) {
+        for (let dx = 0; dx < w; dx++) {
+          const px = x + dx, py = y + dy;
+          if (px < 0 || py < 0 || px >= region.width || py >= region.height) continue;
+          const ch = findOrCreateChar({
+            tileset: selectedTile.tileset, tx: selectedTile.tx + dx, ty: selectedTile.ty + dy,
+            blocking: false, resource: false,
+          });
+          setCell(px, py, ch);
+        }
+      }
+    }
   } else if (currentTool === "erase") {
     setCell(x, y, " ");
   } else if (currentTool === "blocking") {
@@ -217,7 +294,9 @@ function newRegion() {
   }
   regions[slug] = {
     name: slug, biome: "", width: 20, height: 15,
-    ground: selectedTile ? { ...selectedTile } : { tileset: tilesets[0]?.name, tx: 0, ty: 0 },
+    ground: (selectedTile && !selectedTile.autotile)
+      ? { tileset: selectedTile.tileset, tx: selectedTile.tx, ty: selectedTile.ty }
+      : { tileset: tilesets[0]?.name, tx: 0, ty: 0 },
     exits: {}, legend: {}, rows: Array.from({ length: 15 }, () => " ".repeat(20)),
   };
   loadRegion(slug);
@@ -311,8 +390,11 @@ async function boot() {
   $("resize-btn").addEventListener("click", resizeRegion);
   $("save-btn").addEventListener("click", saveCurrentRegion);
   $("set-ground-btn").addEventListener("click", async () => {
-    if (!selectedTile) return;
-    region.ground = { ...selectedTile };
+    if (!selectedTile || selectedTile.autotile) {
+      setStatus("Ground must be a single plain tile, not an autotile brush.", true);
+      return;
+    }
+    region.ground = { tileset: selectedTile.tileset, tx: selectedTile.tx, ty: selectedTile.ty };
     await ensureTilesetImagesLoaded();
     updateGroundPreview();
     renderCanvas();
@@ -330,11 +412,12 @@ async function boot() {
     const { x, y } = canvasCellFromEvent(e);
     applyToolAt(x, y);
   });
-  window.addEventListener("mouseup", () => { painting = false; });
+  window.addEventListener("mouseup", () => { painting = false; paletteDragStart = null; });
   els.mapCanvas.addEventListener("mousemove", (e) => {
     const { x, y } = canvasCellFromEvent(e);
     const entry = entryAt(x, y);
-    els.hoverInfo.textContent = `(${x}, ${y})\n${entry ? `${entry.tileset}\n${entry.tx},${entry.ty}\nblocking:${!!entry.blocking} resource:${!!entry.resource}` : "ground (default)"}`;
+    const tileLabel = entry ? (entry.autotile ? `${entry.tileset} (autotile)` : `${entry.tileset}\n${entry.tx},${entry.ty}`) : "ground (default)";
+    els.hoverInfo.textContent = `(${x}, ${y})\n${tileLabel}${entry ? `\nblocking:${!!entry.blocking} resource:${!!entry.resource}` : ""}`;
     if (painting) applyToolAt(x, y);
   });
 
