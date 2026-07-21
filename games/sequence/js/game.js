@@ -2,7 +2,9 @@ import { buildBoard, buildDrawDeck, HAND_SIZE_BY_PLAYERS, isTwoEyedJack, isOneEy
 import { cardTargets, isCardDead, findNewSequences } from "./rules.js";
 
 const BOT_NAMES = ["Ada", "Beau", "Casey", "Dana", "Ezra", "Finch", "Gwen", "Huxley"];
-export const PLAYER_COLORS = ["#3d6fb5", "#c0392b", "#2e9e5b", "#c9a227"];
+// Sequence chips only come in 3 colors (blue, green, red) - so at most 3
+// individual players can be seated, matching the real game's box contents.
+export const PLAYER_COLORS = ["#3d6fb5", "#2e9e5b", "#c0392b"];
 
 function pickBotNames(count) {
   const pool = [...BOT_NAMES];

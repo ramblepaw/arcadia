@@ -14,7 +14,7 @@ export const ONE_EYED_JACK_SUITS = ["H", "S"]; // remove an opponent chip
 export const SUIT_SYMBOL = { S: "♠", H: "♥", D: "♦", C: "♣" };
 export const SUIT_RED = { S: false, H: true, D: true, C: false };
 
-export const HAND_SIZE_BY_PLAYERS = { 2: 7, 3: 6, 4: 6 };
+export const HAND_SIZE_BY_PLAYERS = { 2: 7, 3: 6 };
 
 export const CORNER_IDS = [0, 9, 90, 99];
 
