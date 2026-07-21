@@ -30,25 +30,15 @@
     <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
     <div class="hud-stats">
       <span id="currency-badge" class="badge">0g</span>
-      <span id="location-badge" class="badge"></span>
+      <span id="region-badge" class="badge"></span>
     </div>
   </header>
 
-  <nav id="tabs">
-    <button class="tab-btn active" data-tab="ranch">Ranch</button>
-    <button class="tab-btn" data-tab="box">Box</button>
-    <button class="tab-btn" data-tab="market">Market</button>
-    <button class="tab-btn" data-tab="zoo">Zoo</button>
-    <button class="tab-btn" data-tab="world">World</button>
-  </nav>
+  <div id="world-wrap">
+    <canvas id="world-canvas"></canvas>
+  </div>
 
-  <main id="panels">
-    <section id="panel-ranch" class="panel"></section>
-    <section id="panel-box" class="panel hidden"></section>
-    <section id="panel-market" class="panel hidden"></section>
-    <section id="panel-zoo" class="panel hidden"></section>
-    <section id="panel-world" class="panel hidden"></section>
-  </main>
+  <p class="hint">Arrow keys / WASD to move. Walk onto a bush to look around.</p>
 
   <aside id="events-feed">
     <h3>Recent Events</h3>

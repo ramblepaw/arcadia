@@ -86,10 +86,12 @@ export const DITTO_SPECIES_KEY = "ditto";
 // long absence can't produce a pathological backlog to compute in one go.
 export const MAX_TICK_SECONDS = 48 * 60 * 60;
 
-// Exploration: a chance per elapsed-time chunk at the current location for a
-// free encounter Pokemon to be added to the box.
-export const ENCOUNTER_CHECK_INTERVAL_SECONDS = 10 * 60;
-export const ENCOUNTER_CHANCE = 0.15;
+// Exploration is now active: stepping onto a "resource" tile in the
+// overworld (see pbRegions.js) rolls once immediately via POST /interact,
+// rather than passively over elapsed time.
+export const INTERACT_COOLDOWN_SECONDS = 3;
+export const INTERACT_ENCOUNTER_CHANCE = 0.22;
+export const INTERACT_ITEM_CHANCE = 0.1;
 
 // Global shop / request board refresh cadence and sizing.
 export const SHOP_REFRESH_INTERVAL_SECONDS = 6 * 60 * 60;

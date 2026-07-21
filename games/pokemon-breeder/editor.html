@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokemon Breeder - Map Editor</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="editor.css">
+</head>
+<body>
+
+<div id="not-admin-screen" class="screen hidden">
+  <div class="start-card">
+    <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
+    <h1>Map Editor</h1>
+    <p class="tagline">Admin access required.</p>
+  </div>
+</div>
+
+<div id="editor" class="hidden">
+  <header id="editor-topbar">
+    <a href="index.html" class="back-to-hub">&larr; Game</a>
+    <label>Region <select id="region-select"></select></label>
+    <input id="new-region-slug" type="text" placeholder="new-region-slug" style="width:130px">
+    <button id="new-region-btn">New Region</button>
+    <label>Name <input id="region-name" type="text"></label>
+    <label>Biome <input id="region-biome" type="text"></label>
+    <label>W <input id="region-width" type="number" min="5" max="100" value="34"></label>
+    <label>H <input id="region-height" type="number" min="5" max="100" value="24"></label>
+    <button id="resize-btn">Resize</button>
+    <button id="save-btn" class="btn">Save</button>
+    <span id="save-status"></span>
+  </header>
+
+  <div id="editor-body">
+    <aside id="palette-panel">
+      <label>Tileset <select id="tileset-select"></select></label>
+      <div id="palette-grid"></div>
+    </aside>
+
+    <main id="canvas-panel">
+      <div id="tool-row">
+        <button data-tool="tile" class="tool-btn active">Paint Tile</button>
+        <button data-tool="erase" class="tool-btn">Erase</button>
+        <button data-tool="blocking" class="tool-btn">Toggle Blocking</button>
+        <button data-tool="resource" class="tool-btn">Toggle Resource</button>
+        <button id="set-ground-btn">Set Selected Tile as Ground</button>
+        <span id="ground-preview"></span>
+      </div>
+      <canvas id="map-canvas"></canvas>
+    </main>
+
+    <aside id="exits-panel">
+      <h3>Exits</h3>
+      <label>North <select id="exit-north"></select></label>
+      <label>South <select id="exit-south"></select></label>
+      <label>East <select id="exit-east"></select></label>
+      <label>West <select id="exit-west"></select></label>
+      <h3>Hover Info</h3>
+      <div id="hover-info">-</div>
+    </aside>
+  </div>
+</div>
+
+<script type="module" src="js/editor.js"></script>
+</body>
+</html>

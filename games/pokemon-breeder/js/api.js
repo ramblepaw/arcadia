@@ -29,8 +29,8 @@ async function request(path, options = {}) {
 }
 
 export const getState = () => request("/state");
-export const getLocations = () => request("/locations").then((b) => b.locations);
-export const travel = (locationSlug) => request("/travel", { method: "POST", body: JSON.stringify({ locationSlug }) });
+export const move = (region, x, y) => request("/move", { method: "POST", body: JSON.stringify({ region, x, y }) });
+export const interact = (region, x, y) => request("/interact", { method: "POST", body: JSON.stringify({ region, x, y }) });
 
 export const buildPen = (biome) => request("/pens", { method: "POST", body: JSON.stringify({ biome }) });
 export const assignToPen = (penId, pokemonId) =>
@@ -54,3 +54,8 @@ export const fulfillRequest = (id, pokemonId) =>
 
 export const getZoos = () => request("/zoos").then((b) => b.zoos);
 export const getZoo = (username) => request(`/zoos/${encodeURIComponent(username)}`);
+
+export const getTilesets = () => request("/dev/tilesets").then((b) => b.tilesets);
+export const getAllRegions = () => request("/dev/regions").then((b) => b.regions);
+export const saveRegion = (slug, region) =>
+  request(`/dev/regions/${encodeURIComponent(slug)}`, { method: "POST", body: JSON.stringify(region) });

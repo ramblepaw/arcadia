@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { db } from "../db.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { requireAdmin } from "../middleware/requireAdmin.js";
 import { isDexReady, getEntry, biomeForEntry, randomSpeciesKeyForBiome, randomSpeciesKey } from "../lib/pbDex.js";
-import { loadLocations, getLocation } from "../lib/pbLocations.js";
+import { getRegion, tileAt, isResource, loadRegions, saveRegion, listTilesets } from "../lib/pbRegions.js";
 import {
   checkCompatibility,
   eggChanceForTier,
@@ -25,8 +26,9 @@ import {
   FEED_HAPPINESS_BOOST,
   FEED_COOLDOWN_SECONDS,
   EGG_CHECK_INTERVAL_SECONDS,
-  ENCOUNTER_CHECK_INTERVAL_SECONDS,
-  ENCOUNTER_CHANCE,
+  INTERACT_COOLDOWN_SECONDS,
+  INTERACT_ENCOUNTER_CHANCE,
+  INTERACT_ITEM_CHANCE,
   MAX_TICK_SECONDS,
   SHOP_REFRESH_INTERVAL_SECONDS,
   SHOP_SIZE,
@@ -41,7 +43,11 @@ export const pokemonBreederRouter = Router();
 const HELD_ITEMS = ["everstone", "destiny-knot"];
 const HELD_ITEM_LABELS = { everstone: "Everstone", "destiny-knot": "Destiny Knot" };
 
-pokemonBreederRouter.use(requireAuth);
+// Gated to admin-only while this game is still in development - not linked
+// from the hub (see games.js) and not usable by regular accounts yet, but
+// still reachable directly so it can be tested against the live server.
+// Remove requireAdmin (and re-add the games.js entry) when ready to launch.
+pokemonBreederRouter.use(requireAuth, requireAdmin);
 pokemonBreederRouter.use((req, res, next) => {
   if (!isDexReady()) {
     return res.status(503).json({ error: "Ranch data not initialized yet - ask the admin to run the pokedex build script." });
@@ -211,11 +217,9 @@ function runTick(userId) {
     }
 
     const egg = db.prepare("SELECT * FROM pb_pen_egg WHERE pen_id = ?").get(pen.id);
-    const location = getLocation(state.current_location);
 
     if (egg) {
-      const stepsGained = elapsed * (location ? location.stepMultiplier : 1);
-      const newProgress = egg.progress_steps + stepsGained;
+      const newProgress = egg.progress_steps + elapsed;
       if (newProgress >= egg.steps_required) {
         insertPokemon(userId, {
           speciesKey: egg.species_key,
@@ -254,27 +258,6 @@ function runTick(userId) {
             pushEvent(userId, `An egg appeared in the ${pen.biome} pen!`);
           }
         }
-      }
-    }
-  }
-
-  const location = getLocation(state.current_location);
-  if (location) {
-    const n = elapsed / ENCOUNTER_CHECK_INTERVAL_SECONDS;
-    const encounterChance = 1 - Math.pow(1 - ENCOUNTER_CHANCE, n);
-    if (Math.random() < encounterChance) {
-      const speciesKey = randomSpeciesKeyForBiome(location.biome) || randomSpeciesKey();
-      const individual = rollNewIndividual(speciesKey);
-      insertPokemon(userId, { ...individual, origin: "encounter", originLocation: location.slug });
-      pushEvent(userId, `You found a wild ${dexName(speciesKey)} at ${location.name}!`);
-      recordDexProgressIfNeeded(userId);
-    }
-    if (location.items.length) {
-      const itemChance = 1 - Math.pow(1 - location.itemDropChance, n);
-      if (Math.random() < itemChance) {
-        const item = location.items[Math.floor(Math.random() * location.items.length)];
-        addInventoryItem(userId, item, 1);
-        pushEvent(userId, `You picked up a ${HELD_ITEM_LABELS[item]} at ${location.name}!`);
       }
     }
   }
@@ -340,7 +323,9 @@ function buildStateResponse(userId) {
 
   return {
     currency: state.currency,
-    currentLocation: state.current_location,
+    region: state.region,
+    posX: state.pos_x,
+    posY: state.pos_y,
     inventory: JSON.parse(state.inventory),
     recentEvents: JSON.parse(state.recent_events),
     nextPenCost: penCost(pens.length),
@@ -362,16 +347,56 @@ pokemonBreederRouter.get("/state", (req, res) => {
   res.json(buildStateResponse(req.user.id));
 });
 
-pokemonBreederRouter.get("/locations", (req, res) => {
-  res.json({ locations: loadLocations() });
+// Movement is client-authoritative for responsiveness (instant feedback,
+// no per-step round trip) - the server just persists where the player
+// ended up. Anything that grants currency/items/pokemon (interact, below)
+// is server-validated instead.
+pokemonBreederRouter.post("/move", (req, res) => {
+  const { region, x, y } = req.body || {};
+  const regionDef = getRegion(region);
+  if (!regionDef) return res.status(400).json({ error: "Unknown region." });
+  const xi = Number(x), yi = Number(y);
+  if (!Number.isInteger(xi) || !Number.isInteger(yi) || xi < 0 || yi < 0 || xi >= regionDef.width || yi >= regionDef.height) {
+    return res.status(400).json({ error: "Position out of bounds." });
+  }
+  ensurePlayerState(req.user.id);
+  db.prepare("UPDATE pb_state SET region = ?, pos_x = ?, pos_y = ? WHERE user_id = ?").run(region, xi, yi, req.user.id);
+  res.json({ ok: true });
 });
 
-pokemonBreederRouter.post("/travel", (req, res) => {
-  runTick(req.user.id); // settle the old location before switching
-  const { locationSlug } = req.body || {};
-  if (!getLocation(locationSlug)) return res.status(400).json({ error: "Unknown location." });
-  db.prepare("UPDATE pb_state SET current_location = ? WHERE user_id = ?").run(locationSlug, req.user.id);
-  res.json(buildStateResponse(req.user.id));
+pokemonBreederRouter.post("/interact", (req, res) => {
+  runTick(req.user.id);
+  const { region, x, y } = req.body || {};
+  const state = db.prepare("SELECT * FROM pb_state WHERE user_id = ?").get(req.user.id);
+  if (state.region !== region || state.pos_x !== Number(x) || state.pos_y !== Number(y)) {
+    return res.status(400).json({ error: "Move there first." });
+  }
+  if (state.last_interact_at) {
+    const secondsSince = db.prepare("SELECT (julianday('now') - julianday(?)) * 86400 AS s").get(state.last_interact_at).s;
+    if (secondsSince < INTERACT_COOLDOWN_SECONDS) return res.status(429).json({ error: "Too soon." });
+  }
+  const tile = tileAt(region, Number(x), Number(y));
+  if (!isResource(tile)) return res.status(400).json({ error: "Nothing to interact with here." });
+
+  db.prepare("UPDATE pb_state SET last_interact_at = datetime('now') WHERE user_id = ?").run(req.user.id);
+
+  const regionDef = getRegion(region);
+  const events = [];
+  if (Math.random() < INTERACT_ENCOUNTER_CHANCE) {
+    const speciesKey = randomSpeciesKeyForBiome(regionDef.biome) || randomSpeciesKey();
+    const individual = rollNewIndividual(speciesKey);
+    insertPokemon(req.user.id, { ...individual, origin: "encounter", originLocation: region });
+    pushEvent(req.user.id, `You found a wild ${dexName(speciesKey)} in ${regionDef.name}!`);
+    recordDexProgressIfNeeded(req.user.id);
+    events.push({ type: "encounter", speciesKey });
+  }
+  if (Math.random() < INTERACT_ITEM_CHANCE) {
+    const item = HELD_ITEMS[Math.floor(Math.random() * HELD_ITEMS.length)];
+    addInventoryItem(req.user.id, item, 1);
+    pushEvent(req.user.id, `You picked up a ${HELD_ITEM_LABELS[item]} in ${regionDef.name}!`);
+    events.push({ type: "item", item });
+  }
+  res.json({ events, state: buildStateResponse(req.user.id) });
 });
 
 pokemonBreederRouter.post("/pens", (req, res) => {
@@ -573,4 +598,26 @@ pokemonBreederRouter.get("/zoos/:username", (req, res) => {
   if (!user) return res.status(404).json({ error: "User not found." });
   const rows = db.prepare("SELECT * FROM pb_pokemon WHERE user_id = ? AND on_display = 1 ORDER BY id").all(user.id);
   res.json({ username: user.username, pokemon: rows.map(serializePokemon) });
+});
+
+// --- map editor (dev tool, already admin-gated above) ------------------
+
+pokemonBreederRouter.get("/dev/tilesets", (req, res) => {
+  res.json({ tilesets: listTilesets() });
+});
+
+pokemonBreederRouter.get("/dev/regions", (req, res) => {
+  res.json({ regions: loadRegions() });
+});
+
+const SLUG_RE = /^[a-z0-9-]{1,64}$/;
+pokemonBreederRouter.post("/dev/regions/:slug", (req, res) => {
+  const { slug } = req.params;
+  if (!SLUG_RE.test(slug)) return res.status(400).json({ error: "Invalid region slug." });
+  const region = req.body || {};
+  if (!region.name || !region.width || !region.height || !region.rows || !region.legend) {
+    return res.status(400).json({ error: "Region is missing required fields." });
+  }
+  saveRegion(slug, region);
+  res.json({ ok: true });
 });
