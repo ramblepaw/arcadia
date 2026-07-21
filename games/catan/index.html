@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catan</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="start-screen" class="screen">
+  <div class="start-card">
+    <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
+    <h1>Catan</h1>
+    <p class="tagline">Settle the island. Trade wisely, build boldly, race to 10 points.</p>
+    <label for="bot-count">Number of AI opponents</label>
+    <select id="bot-count">
+      <option value="1">1</option>
+      <option value="2" selected>2</option>
+      <option value="3">3</option>
+    </select>
+    <button id="start-btn">Found a Settlement</button>
+    <button id="rules-btn" class="link-btn">How to Play</button>
+  </div>
+</div>
+
+<div id="game-screen" class="screen hidden">
+  <header id="hud">
+    <h1 class="hud-title">Catan</h1>
+    <div id="hud-status"></div>
+    <button id="main-menu-btn">Main Menu</button>
+  </header>
+
+  <div class="game-layout">
+    <div id="board-wrap"></div>
+
+    <aside id="side-panel">
+      <div id="action-bar"></div>
+      <div id="dev-card-panel"></div>
+      <div id="player-panels" class="player-panels"></div>
+      <div id="game-log"></div>
+    </aside>
+  </div>
+</div>
+
+<div id="rules-modal" class="modal hidden">
+  <div class="modal-box rules-box">
+    <h2>How to Play Catan</h2>
+    <h3>Goal</h3>
+    <p>Be the first to reach 10 victory points by settling the island, building cities, trading resources, and holding Longest Road or Largest Army.</p>
+    <h3>Setup</h3>
+    <p>In turn order (then reversed), each player places two settlements and two connecting roads. Your second settlement grants starting resources from every hex it touches.</p>
+    <h3>Your Turn</h3>
+    <p>Roll two dice. Every hex whose number matches the roll produces one resource per adjacent settlement (two for a city) - unless the robber sits on it. Rolling a 7 forces anyone with more than 7 cards to discard half, then you move the robber onto any hex and steal a card from someone touching it.</p>
+    <h3>Building</h3>
+    <p>Spend resources to build roads (wood + brick), settlements (wood + brick + sheep + wheat), or upgrade a settlement into a city (2 wheat + 3 ore). Settlements must be at least two roads away from any other settlement, and new roads must connect to your existing network.</p>
+    <h3>Development Cards</h3>
+    <p>Buy one for sheep + wheat + ore. Knights move the robber and count toward Largest Army (3+ played, most wins the bonus). Road Building gives two free roads, Year of Plenty gives any two resources, Monopoly takes every copy of one resource from all opponents. Victory Point cards add silently to your score.</p>
+    <h3>Trading</h3>
+    <p>Trade with the bank at 4:1, or better at a port your settlement/city touches (3:1 generic, 2:1 for a matching resource). You can also propose a trade to your opponents - the first to accept takes the deal.</p>
+    <h3>Longest Road &amp; Largest Army</h3>
+    <p>Each is worth 2 points once you qualify (5+ continuous roads, or 3+ knights played) and stays with you until someone else strictly beats your total.</p>
+    <button id="close-rules-btn">Close</button>
+  </div>
+</div>
+
+<div id="discard-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2>Discard Resources</h2>
+    <p>You must discard <span id="discard-required"></span> cards (rolled a 7).</p>
+    <div id="discard-inputs" class="discard-inputs"></div>
+    <p>Discarding: <span id="discard-sum">0</span></p>
+    <button id="discard-confirm-btn" disabled>Discard</button>
+  </div>
+</div>
+
+<div id="steal-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2>Steal a Resource</h2>
+    <p>Who do you want to steal from?</p>
+    <div id="steal-options" class="modal-actions"></div>
+  </div>
+</div>
+
+<div id="devcard-picker-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="devcard-picker-title"></h2>
+    <div id="devcard-picker-options" class="resource-pick-list"></div>
+    <p>Picked: <span id="devcard-picker-picks"></span></p>
+    <div class="modal-actions">
+      <button id="devcard-picker-confirm-btn" disabled>Confirm</button>
+      <button id="devcard-picker-cancel-btn" class="secondary-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="bot-trade-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2>Trade Offer</h2>
+    <p id="bot-trade-text"></p>
+    <div class="modal-actions">
+      <button id="bot-trade-accept-btn">Accept</button>
+      <button id="bot-trade-reject-btn" class="secondary-btn">Reject</button>
+    </div>
+  </div>
+</div>
+
+<div id="trade-modal" class="modal hidden">
+  <div class="modal-box wide-box">
+    <h2>Trade</h2>
+    <div class="trade-tabs">
+      <button id="trade-bank-tab-btn" class="tab-btn">Bank / Port</button>
+      <button id="trade-players-tab-btn" class="tab-btn">Opponents</button>
+    </div>
+    <div id="trade-bank-panel"></div>
+    <div id="trade-players-panel"></div>
+    <div class="modal-actions">
+      <button id="trade-close-btn" class="secondary-btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="game-over-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2>Game Over</h2>
+    <div id="final-standings"></div>
+    <div class="game-over-actions">
+      <button id="play-again-btn">Play Again</button>
+      <a href="../../index.html" class="btn secondary">Main Menu</a>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

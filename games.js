@@ -195,4 +195,20 @@ export const GAMES = [
       <path d="M16 38 L32 38"/>
     </svg>`,
   },
+  {
+    slug: "catan",
+    title: "Catan",
+    tagline: "Settle the island. Trade wisely, race to 10 points.",
+    path: "games/catan/index.html",
+    accent: "#2f6b3a",
+    scoreDirection: "asc",
+    leaderboardMetric: "winRate",
+    icon: `<svg ${ICON_ATTRS}>
+      <path d="M24 6 L40 15 L40 33 L24 42 L8 33 L8 15 Z"/>
+      <path d="M24 6 L24 42" opacity="0.35"/>
+      <path d="M8 15 L24 24 L40 15" opacity="0.35"/>
+      <path d="M8 33 L24 24 L40 33" opacity="0.35"/>
+      <circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/>
+    </svg>`,
+  },
 ];
