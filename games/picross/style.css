@@ -10,7 +10,8 @@
   --text-dim: #c9c2d6;
   --danger: #d13438;
   --ok: #2e9e5b;
-  --cell-size: 26px;
+  --cell-size: 40px;
+  --mosaic-cell-size: 12px;
 }
 
 html, body {
@@ -115,7 +116,7 @@ html, body {
   flex-direction: column;
 }
 
-#hud {
+.hud {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -177,7 +178,7 @@ html, body {
   color: #1c0f38;
 }
 
-#main-menu-btn {
+.main-menu-btn {
   background: var(--panel-light);
   color: var(--text);
   border: 1px solid rgba(255,255,255,0.2);
@@ -185,32 +186,44 @@ html, body {
   border-radius: 8px;
   cursor: pointer;
 }
-#main-menu-btn:hover { background: rgba(255,255,255,0.18); }
+.main-menu-btn:hover { background: rgba(255,255,255,0.18); }
 
-/* ---------- Palette ---------- */
-.palette {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  flex-wrap: wrap;
+/* ---------- Mosaic overview (the assembling picture) ---------- */
+.mosaic-canvas {
+  display: grid;
+  grid-template-columns: repeat(var(--total-cols), var(--mosaic-cell-size));
+  grid-template-rows: repeat(var(--total-rows), var(--mosaic-cell-size));
+  gap: 0;
+  background: rgba(0,0,0,0.5);
+  border: 2px solid rgba(0,0,0,0.5);
+  border-radius: 4px;
+  padding: 4px;
+  width: max-content;
 }
 
-.swatch {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  border: 2px solid rgba(255,255,255,0.2);
+.panel-tile {
+  border: 1px solid rgba(0,0,0,0.55);
+  box-sizing: border-box;
+}
+
+.panel-tile.solved {
+  display: grid;
+  grid-template-columns: repeat(var(--panel-size), 1fr);
+  grid-template-rows: repeat(var(--panel-size), 1fr);
+}
+
+.panel-tile.solved .pixel {
+  width: 100%;
+  height: 100%;
+}
+
+.panel-tile.unsolved {
+  background: linear-gradient(145deg, #3a3352, #221d38);
   cursor: pointer;
   padding: 0;
-  transition: transform 0.1s ease;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,0.12), inset -1px -1px 0 rgba(0,0,0,0.35);
 }
-.swatch:hover { transform: translateY(-1px); }
-.swatch.active {
-  border-color: var(--text);
-  box-shadow: 0 0 0 2px var(--gold);
-}
+.panel-tile.unsolved:hover { background: linear-gradient(145deg, #453d63, #29233f); }
 
 .table-mid {
   display: flex;
@@ -409,9 +422,8 @@ html, body {
 .back-to-hub:hover { color: var(--gold); text-decoration: underline; }
 
 @media (max-width: 480px) {
-  :root { --cell-size: 20px; }
+  :root { --cell-size: 32px; --mosaic-cell-size: 10px; }
   .start-card { padding: 28px 24px; }
-  #hud { padding: 8px 10px; }
+  .hud { padding: 8px 10px; }
   .counter { font-size: 1.1em; padding: 3px 7px; }
-  .swatch { width: 28px; height: 28px; }
 }

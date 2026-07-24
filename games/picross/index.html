@@ -12,41 +12,64 @@
   <div class="start-card">
     <a href="../../index.html" class="back-to-hub">&larr; Arcadia</a>
     <h1>Picross Mosaic</h1>
-    <p class="tagline">Paint by the clues to reveal the picture.</p>
-    <div id="puzzle-list" class="difficulty-list"></div>
+    <p class="tagline">One big picture, one small puzzle at a time.</p>
+    <div id="mosaic-list" class="difficulty-list"></div>
     <button id="rules-btn" class="link-btn">How to Play</button>
   </div>
 </div>
 
 <div id="game-screen" class="screen hidden">
-  <header id="hud">
-    <div class="hud-left">
-      <div id="timer" class="counter">000</div>
-      <div id="puzzle-label" class="requirement-badge"></div>
-      <button id="mark-mode-btn" class="flag-mode-btn" title="Toggle mark mode (mark cells you're sure are empty)">&#x2715;</button>
-    </div>
-    <div class="hud-right">
-      <button id="reset-btn" class="reset-face" title="Restart this puzzle">&#x21BA;</button>
-      <button id="main-menu-btn">Main Menu</button>
-    </div>
-  </header>
 
-  <div id="palette" class="palette"></div>
+  <div id="overview-view">
+    <header class="hud">
+      <div class="hud-left">
+        <div class="counter session-timer">000</div>
+        <div id="mosaic-title" class="requirement-badge"></div>
+        <div id="progress-badge" class="requirement-badge"></div>
+      </div>
+      <div class="hud-right">
+        <button id="reset-mosaic-btn" class="reset-face" title="Restart this mosaic">&#x21BA;</button>
+        <button class="main-menu-btn">Main Menu</button>
+      </div>
+    </header>
 
-  <div class="table-mid">
-    <div id="board-scroll" class="board-scroll">
-      <div id="picross-wrap" class="picross-wrap">
-        <div class="corner"></div>
-        <div id="col-clues" class="col-clues"></div>
-        <div id="row-clues" class="row-clues"></div>
-        <div id="board" class="board"></div>
+    <div class="table-mid">
+      <div class="board-scroll">
+        <div id="mosaic-canvas" class="mosaic-canvas"></div>
+      </div>
+    </div>
+
+    <div id="status-bar">
+      <div id="status-info">Click a blank panel to solve it. The picture fills in as you go.</div>
+    </div>
+  </div>
+
+  <div id="panel-view" class="hidden">
+    <header class="hud">
+      <div class="hud-left">
+        <button id="back-to-overview-btn" class="reset-face" title="Back to the full picture">&#x2190;</button>
+        <div class="counter session-timer">000</div>
+        <div id="panel-label" class="requirement-badge"></div>
+        <button id="mark-mode-btn" class="flag-mode-btn" title="Toggle mark mode (mark cells you're sure are empty)">&#x2715;</button>
+      </div>
+      <div class="hud-right">
+        <button id="reset-panel-btn" class="reset-face" title="Clear this panel">&#x21BA;</button>
+        <button class="main-menu-btn">Main Menu</button>
+      </div>
+    </header>
+
+    <div class="table-mid">
+      <div id="board-scroll" class="board-scroll">
+        <div id="picross-wrap" class="picross-wrap">
+          <div class="corner"></div>
+          <div id="col-clues" class="col-clues"></div>
+          <div id="row-clues" class="row-clues"></div>
+          <div id="board" class="board"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div id="status-bar">
-    <div id="status-info"></div>
-  </div>
 </div>
 
 <div id="rules-modal" class="modal hidden">
@@ -54,25 +77,25 @@
     <h2>How to Play Picross Mosaic</h2>
 
     <h3>Goal</h3>
-    <p>Paint every cell the picture needs, and leave every other cell blank, using only the number clues along each row and column.</p>
+    <p>One big picture is cut into a grid of small panels. Solve each panel as its own ordinary picross puzzle, and the full picture assembles as you clear panels.</p>
 
     <h3>Clues</h3>
-    <p>Each clue is a colored number giving the length of one unbroken run of that color in that row or column, in order. A row clued "3 red, 2 blue" has a block of 3 red cells, at least one gap, then a block of 2 blue cells, somewhere in that row.</p>
+    <p>Each panel has its own row and column clues, same as any picross puzzle: a clue like "3, 2" means a block of 3 filled cells, at least one gap, then a block of 2 filled cells, somewhere in that line.</p>
 
     <h3>Controls</h3>
-    <p>Pick a color from the palette, then click (or tap) a cell to paint it - click a painted cell again to clear it. Toggle mark mode (the &#x2715; button, or right-click on desktop) to mark cells you're confident are blank, as a memory aid; marks don't count toward solving.</p>
+    <p>Click a blank panel on the overview to open it. Inside a panel, click (or tap) a cell to fill it - click a filled cell again to clear it. Toggle mark mode (the &#x2715; button, or right-click on desktop) to mark cells you're confident are blank, as a memory aid; marks don't count toward solving.</p>
 
     <h3>Winning</h3>
-    <p>The puzzle solves itself automatically the moment the grid matches the picture. A row or column's clue dims once that line is fully satisfied.</p>
+    <p>A panel solves itself automatically the moment it matches its picture, and you're dropped back to the overview to pick the next one. Clear every panel to finish the mosaic.</p>
 
     <button id="close-rules-btn">Close</button>
   </div>
 </div>
 
-<div id="solved-modal" class="modal hidden">
+<div id="mosaic-complete-modal" class="modal hidden">
   <div class="modal-box">
-    <h2>Solved!</h2>
-    <p id="solved-detail"></p>
+    <h2>Mosaic Complete!</h2>
+    <p id="mosaic-complete-detail"></p>
     <div class="game-over-actions">
       <button id="play-again-btn">Play Again</button>
       <a href="../../index.html" class="btn secondary">Main Menu</a>

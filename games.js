@@ -198,7 +198,7 @@ export const GAMES = [
   {
     slug: "picross",
     title: "Picross Mosaic",
-    tagline: "Paint by the clues to reveal the picture.",
+    tagline: "One big picture, one small puzzle at a time.",
     path: "games/picross/index.html",
     accent: "#d94f97",
     scoreDirection: "asc",

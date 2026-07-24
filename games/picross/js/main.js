@@ -1,25 +1,24 @@
-import { Game } from "./game.js";
-import { PUZZLES } from "./puzzles.js";
+import { MosaicSession } from "./session.js";
+import { MOSAICS } from "./mosaics.js";
 import * as ui from "./ui.js";
 import { getMe, recordPlay, trackAbandonment } from "/api-client.js";
 
-let game = null;
+let session = null;
 let timerInterval = null;
 
-async function reportGameResult(finishedGame) {
+async function reportMosaicComplete(finishedSession) {
   try {
     const me = await getMe();
     if (!me) return; // guest - nothing to record
 
     await recordPlay({
       gameSlug: "picross",
-      score: finishedGame.elapsedSeconds(),
+      score: finishedSession.elapsedSeconds(),
       result: "win",
       details: {
-        puzzle: finishedGame.puzzle.slug,
-        rows: finishedGame.puzzle.rows,
-        cols: finishedGame.puzzle.cols,
-        colors: finishedGame.puzzle.colors.length,
+        mosaic: finishedSession.mosaic.slug,
+        totalPanels: finishedSession.totalPanels,
+        panelSize: finishedSession.mosaic.panelSize,
       },
     });
   } catch (err) {
@@ -28,14 +27,13 @@ async function reportGameResult(finishedGame) {
 }
 
 trackAbandonment("picross", () => {
-  if (!game || game.isSolved || !game.startTime) return null;
+  if (!session || session.isComplete || !session.startTime) return null;
   return {
-    score: game.elapsedSeconds(),
+    score: session.elapsedSeconds(),
     details: {
-      puzzle: game.puzzle.slug,
-      rows: game.puzzle.rows,
-      cols: game.puzzle.cols,
-      colors: game.puzzle.colors.length,
+      mosaic: session.mosaic.slug,
+      solvedPanels: session.solvedCount,
+      totalPanels: session.totalPanels,
     },
   };
 });
@@ -50,59 +48,84 @@ function stopTimer() {
 function startTimerLoop() {
   stopTimer();
   timerInterval = setInterval(() => {
-    if (!game || game.isSolved) {
+    if (!session || session.isComplete) {
       stopTimer();
       return;
     }
-    ui.updateTimerDisplay(game);
+    ui.updateTimerDisplays(session);
   }, 1000);
 }
 
-function render() {
-  ui.renderAll(game, {
-    onCellClick: (r, c) => game.paintCell(r, c),
-    onToggleMark: (r, c) => game.toggleMark(r, c),
-    onSelectColor: (i) => game.setSelectedColor(i),
-  });
+function showOverviewScreen() {
+  document.getElementById("panel-view").classList.add("hidden");
+  document.getElementById("overview-view").classList.remove("hidden");
+}
 
-  if (game.startTime && !game.isSolved && !timerInterval) {
+function showPanelScreen() {
+  document.getElementById("overview-view").classList.add("hidden");
+  document.getElementById("panel-view").classList.remove("hidden");
+}
+
+function render() {
+  if (session.startTime && !session.isComplete && !timerInterval) {
     startTimerLoop();
   }
 
-  if (game.isSolved) {
-    stopTimer();
-    ui.updateTimerDisplay(game);
-    const modal = document.getElementById("solved-modal");
-    if (modal.classList.contains("hidden")) {
-      ui.showSolvedModal(game);
-      reportGameResult(game);
+  if (session.view === "overview") {
+    showOverviewScreen();
+    ui.renderOverview(session, {
+      onOpenPanel: (pr, pc) => session.openPanel(pr, pc),
+    });
+
+    if (session.isComplete) {
+      stopTimer();
+      ui.updateTimerDisplays(session);
+      const modal = document.getElementById("mosaic-complete-modal");
+      if (modal.classList.contains("hidden")) {
+        ui.showMosaicCompleteModal(session);
+        reportMosaicComplete(session);
+      }
     }
+    return;
   }
+
+  const panelGame = session.currentPanelGame();
+  if (panelGame.solved) {
+    session.showOverview(); // re-emits, which re-enters render() on the overview branch
+    return;
+  }
+
+  showPanelScreen();
+  ui.renderPanel(session, {
+    onCellClick: (r, c) => panelGame.paintCell(r, c),
+    onToggleMark: (r, c) => panelGame.toggleMark(r, c),
+  });
 }
 
-function startGame(slug) {
+function startMosaic(slug) {
   stopTimer();
-  game = new Game(slug);
-  game.subscribe(render);
+  session = new MosaicSession(slug);
+  session.subscribe(render);
   document.getElementById("start-screen").classList.add("hidden");
-  document.getElementById("solved-modal").classList.add("hidden");
+  document.getElementById("mosaic-complete-modal").classList.add("hidden");
   document.getElementById("game-screen").classList.remove("hidden");
   render();
 }
 
-function buildPuzzleList() {
-  const list = document.getElementById("puzzle-list");
-  PUZZLES.forEach((puzzle) => {
+function buildMosaicList() {
+  const list = document.getElementById("mosaic-list");
+  MOSAICS.forEach((mosaic) => {
     const btn = document.createElement("button");
     btn.className = "difficulty-btn";
-    btn.dataset.puzzle = puzzle.slug;
-    btn.innerHTML = `${puzzle.title} <span>${puzzle.rows}&times;${puzzle.cols} &middot; ${puzzle.colors.length} colors &middot; ${puzzle.difficulty}</span>`;
-    btn.addEventListener("click", () => startGame(puzzle.slug));
+    btn.dataset.mosaic = mosaic.slug;
+    const panelCount = mosaic.panelRows * mosaic.panelCols;
+    btn.innerHTML = `${mosaic.title} <span>${mosaic.rows}&times;${mosaic.cols} &middot; ${panelCount} panels</span>`;
+    btn.addEventListener("click", () => startMosaic(mosaic.slug));
     list.appendChild(btn);
   });
 }
 
-buildPuzzleList();
+buildMosaicList();
 
 document.getElementById("rules-btn").addEventListener("click", () => {
   document.getElementById("rules-modal").classList.remove("hidden");
@@ -113,23 +136,35 @@ document.getElementById("close-rules-btn").addEventListener("click", () => {
 });
 
 document.getElementById("play-again-btn").addEventListener("click", () => {
-  startGame(game.puzzle.slug);
+  startMosaic(session.mosaic.slug);
 });
 
 document.getElementById("mark-mode-btn").addEventListener("click", () => {
-  game.toggleMarkMode();
+  session.currentPanelGame().toggleMarkMode();
 });
 
-document.getElementById("reset-btn").addEventListener("click", () => {
-  const midGame = game && !game.isSolved && game.startTime;
-  if (midGame && !confirm("Restart this puzzle? Your progress will be lost.")) return;
-  startGame(game.puzzle.slug);
+document.getElementById("back-to-overview-btn").addEventListener("click", () => {
+  session.showOverview();
 });
 
-document.getElementById("main-menu-btn").addEventListener("click", () => {
-  const midGame = game && !game.isSolved && game.startTime;
-  if (midGame && !confirm("Leave this puzzle in progress? Your current progress will be lost.")) {
-    return;
-  }
-  location.href = "../../index.html";
+document.getElementById("reset-panel-btn").addEventListener("click", () => {
+  const { pr, pc } = session.view;
+  session.panelGames[pr][pc] = null;
+  session.openPanel(pr, pc);
+});
+
+document.getElementById("reset-mosaic-btn").addEventListener("click", () => {
+  const midGame = session && session.startTime && !session.isComplete;
+  if (midGame && !confirm("Restart this mosaic? All panel progress will be lost.")) return;
+  startMosaic(session.mosaic.slug);
+});
+
+document.querySelectorAll(".main-menu-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const midGame = session && session.startTime && !session.isComplete;
+    if (midGame && !confirm("Leave this mosaic in progress? Your current progress will be lost.")) {
+      return;
+    }
+    location.href = "../../index.html";
+  });
 });
