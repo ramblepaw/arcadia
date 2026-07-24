@@ -196,6 +196,26 @@ export const GAMES = [
     </svg>`,
   },
   {
+    slug: "picross",
+    title: "Picross Mosaic",
+    tagline: "Paint by the clues to reveal the picture.",
+    path: "games/picross/index.html",
+    accent: "#d94f97",
+    scoreDirection: "asc",
+    leaderboardMetric: "winRate",
+    icon: `<svg ${ICON_ATTRS}>
+      <rect x="6" y="6" width="36" height="36" rx="2"/>
+      <rect x="6" y="6" width="12" height="12" fill="currentColor" stroke="none"/>
+      <rect x="30" y="18" width="12" height="12" fill="currentColor" stroke="none"/>
+      <rect x="18" y="30" width="12" height="12" fill="currentColor" stroke="none"/>
+      <path d="M18 6 L18 18 L30 18 L30 30 L18 30 L18 42"/>
+      <path d="M6 18 L18 18"/>
+      <path d="M30 6 L30 18"/>
+      <path d="M42 30 L30 30"/>
+      <path d="M6 30 L18 30"/>
+    </svg>`,
+  },
+  {
     slug: "catan",
     title: "Catan",
     tagline: "Settle the island. Trade wisely, race to 10 points.",
